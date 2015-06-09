@@ -111,23 +111,49 @@ public class Intersection extends Object {
     /////// Do unit of work
     ///////////////////////////////////////////////////////////////////////
     public void doUnitOfWork () {
-        DebugOutput.print("" + this);
-        DebugOutput.print("Incoming Southward: "
-                          + this.inSouthSegment.toStringStatus());
-        DebugOutput.print("Incoming Eastward: "
-                          + this.inEastSegment.toStringStatus());
-        DebugOutput.print("Incoming Northward: "
-                          + this.inNorthSegment.toStringStatus());
-        DebugOutput.print("Incoming Westward: "
-                          + this.inWestSegment.toStringStatus());
-        DebugOutput.print("Outgoing Southward: "
-                          + this.outSouthSegment.toStringStatus());
-        DebugOutput.print("Outgoing Eastward: "
-                          + this.outEastSegment.toStringStatus());
-        DebugOutput.print("Outgoing Northward: "
-                          + this.outNorthSegment.toStringStatus());
-        DebugOutput.print("Outgoing Westward: "
-                          + this.outWestSegment.toStringStatus());
+        DebugOutput.print("The intersection at col "
+                          + this.col
+                          + " and row "
+                          + this.row
+                          + " reports");
+        
+        this.processIncomingSegment(this.inSouthSegment);
+        this.processIncomingSegment(this.inEastSegment);
+        this.processIncomingSegment(this.inNorthSegment);
+        this.processIncomingSegment(this.inWestSegment);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Process incoming segment
+    ///////////////////////////////////////////////////////////////////////
+    private void processIncomingSegment(Segment segment) {
+        if (segment.isCarWaiting()) {
+            DebugOutput.print("  incoming segment having direction "
+                              + Direction.toString(segment.getDirection())
+                              + " is nonempty and");
+            
+            Car car = segment.processFirstCar();
+            int nextDirection = car.getNextDirection();
+            DebugOutput.print("   "
+                              + car
+                              + " is removed and placed into outgoing segment"
+                              + " having direction "
+                              + Direction.toString(nextDirection));
+            
+            if (nextDirection == Direction.SOUTHWARD)
+                this.outSouthSegment.addCar(car);
+            if (nextDirection == Direction.EASTWARD)
+                this.outEastSegment.addCar(car);
+            if (nextDirection == Direction.NORTHWARD)
+                this.outNorthSegment.addCar(car);
+            if (nextDirection == Direction.WESTWARD)
+                this.outWestSegment.addCar(car);
+        }
+        else {
+            DebugOutput.print("  incoming segment having direction "
+                              + Direction.toString(segment.getDirection())
+                              + " is empty");
+        }
     }
     
     ///////////////////////////////////////////////////////////////////////

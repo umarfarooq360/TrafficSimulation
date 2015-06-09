@@ -15,7 +15,9 @@ public class Car extends Object {
     private int idNumber;
     private int row;
     private int col;
-    private int directionCarIsHeaded;
+    private int direction;
+    private int blocksBeforeTurn;
+    private int turnDirection;
     private int entranceTime;
     private int exitTime;
 
@@ -33,16 +35,26 @@ public class Car extends Object {
         this.idNumber = idNumber;
         this.marked = marked;
     }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Car (int idNumber, boolean marked, int blocksBeforeTurn,
+                int turnDirection) {
+        this(idNumber, marked);
+        this.blocksBeforeTurn = blocksBeforeTurn;
+        this.turnDirection    = turnDirection;
+    }
 
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
-    public Car (int idNumber, boolean marked,
-                int row, int col, int directionCarIsHeaded) {
-        this(idNumber, marked);
+    public Car (int idNumber, boolean marked, int blocksBeforeTurn,
+                int turnDirection, int row, int col, int direction) {
+        this(idNumber, marked, blocksBeforeTurn, turnDirection);
         this.row = row;
         this.col = col;
-        this.directionCarIsHeaded = directionCarIsHeaded;
+        this.direction = direction;
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -51,13 +63,6 @@ public class Car extends Object {
     public int getRow() {
         return this.row;
     }
-    
-    ///////////////////////////////////////////////////////////////////////
-    /////// Set current row position of car
-    ///////////////////////////////////////////////////////////////////////
-    public void setRow(int row) {
-        this.row = row;
-    }
 
     ///////////////////////////////////////////////////////////////////////
     /////// Get current column position of car
@@ -65,33 +70,46 @@ public class Car extends Object {
     public int getCol() {
         return this.col;
     }
-    
-    ///////////////////////////////////////////////////////////////////////
-    /////// Set current column position of car
-    ///////////////////////////////////////////////////////////////////////
-    public void setCol(int col) {
-        this.col = col;
-    }
 
     ///////////////////////////////////////////////////////////////////////
     /////// Get current direction the car is heading
     ///////////////////////////////////////////////////////////////////////
-    public int getDirectionCarIsHeaded() {
-        return this.directionCarIsHeaded;
+    public int getDirection() {
+        return this.direction;
     }
     
     ///////////////////////////////////////////////////////////////////////
-    /////// Set current direction the car is heading
+    /////// Update car after moving to new segment
     ///////////////////////////////////////////////////////////////////////
-    public void setDirectionCarIsHeaded(int direction) {
-        this.directionCarIsHeaded = direction;
+    public void moveTo(int row, int col, int direction) {
+        if (!(this.row == row &&
+              this.col == col &&
+              this.direction == direction)) {
+            
+            this.row = row;
+            this.col = col;
+            this.direction = direction;
+        
+            if (this.blocksBeforeTurn >= 0)
+                this.blocksBeforeTurn--;
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get direction the car will be heading in the next block
+    ///////////////////////////////////////////////////////////////////////
+    public int getNextDirection() {
+        if (this.blocksBeforeTurn == 0)
+           return Direction.getDirectionAfterTurn(this.direction,
+                                                  this.turnDirection);
+        return this.direction;
     }
 
     ///////////////////////////////////////////////////////////////////////
     /////// String representation of car
     ///////////////////////////////////////////////////////////////////////
     public String toString() {
-        return "Car " + this.idNumber;
+        return "car#" + this.idNumber;
     }
 
 }

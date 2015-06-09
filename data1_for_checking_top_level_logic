@@ -14,5 +14,285 @@ when an incoming segment of an intersection is aiming SOUTHWARD, the segment
 when an outgoing segment of an intersection is aiming SOUTHWARD, the segment
   is immediately south of that intersection
 turning direction: NEVER_TURN == 0; TURN_RIGHTWARD == 1; TURN_LEFTWARD == -1
-number of intersections in one direction:
+numIntersectionsInOneDirection:
 2
+number of cars created for the test:
+6
+car number:
+1
+born in the segment that is positioned at col:
+2
+born in the segment that is positioned at row:
+2
+born in the segment that is oriented in direction:
+0
+additional blocks to travel prior to turning (-1 means the car will never turn):
+-1 
+direction the car will turn, when the car turns:
+0
+car number:
+2
+born in the segment that is positioned at col:
+1
+born in the segment that is positioned at row:
+2
+born in the segment that is oriented in direction:
+3
+additional blocks to travel prior to turning (-1 means the car will never turn):
+-1 
+direction the car will turn, when the car turns:
+0
+car number:
+3
+born in the segment that is positioned at col:
+1
+born in the segment that is positioned at row:
+2
+born in the segment that is oriented in direction:
+2
+additional blocks to travel prior to turning (-1 means the car will never turn):
+0 
+direction the car will turn, when the car turns:
+1
+car number:
+4
+born in the segment that is positioned at col:
+1
+born in the segment that is positioned at row:
+1
+born in the segment that is oriented in direction:
+1
+additional blocks to travel prior to turning (-1 means the car will never turn):
+1 
+direction the car will turn, when the car turns:
+0
+car number:
+5
+born in the segment that is positioned at col:
+2
+born in the segment that is positioned at row:
+1
+born in the segment that is oriented in direction:
+2
+additional blocks to travel prior to turning (-1 means the car will never turn):
+1 
+direction the car will turn, when the car turns:
+-1
+car number:
+6
+born in the segment that is positioned at col:
+2
+born in the segment that is positioned at row:
+1
+born in the segment that is oriented in direction:
+0
+additional blocks to travel prior to turning (-1 means the car will never turn):
+0 
+direction the car will turn, when the car turns:
+-1
+NOTE: Starting at the current line, no lines should be read by the program.
+Here's a picture of the grid, with the car numbers to the right of (or
+above) the segment the car is "born" into, where i[col, row] denotes
+an instance of Intersection::
+
+              |    ^             |1   ^
+              v    |             v    |
+                           2
+         <-               <-                 <-
+row 2:        i[1,2]             i[2,2]
+   
+         ->               ->                 ->
+   
+              |    ^             |6   ^
+              v    |3            v    | 
+   
+         <-               <-                 <-
+row 1:        i[1,1]             i[2,1]
+         4
+         ->               ->                 ->
+              |    ^             |    ^
+              v    |             v    |5
+
+col:             1                  2
+
+
+The desired debug-output should be *exactly* as follows (except
+for the pictures of the grid):
+
+The purpose of the tester program is simply to help ensure the following
+actions are carried out successfully (to help ensure that just the top-level
+logic being tested tends to "work" successfully):
+  - an intersection can check each of its 4 incoming segments to
+       see if the segment at least contains a car
+  - an intersection can remove a car from any of its 4 incoming segments,
+       and can determine from that car whether the car has 0 blocks
+       to go before the car turns 
+  - whenever an intersection learns that a car at one of its incoming
+       segments has 0 blocks to go before turning, the intersection can 
+       remove the car from the car's current segment and place the
+       car in the appropriate one of the 4 outgoing segments from the 
+       intersection
+       (after learning from the car whether the car turns right or
+       turns left)
+  - whenever an intersection learns that a car at one of its incoming
+       segments has more than 0 blocks to go before turning, the intersection 
+       can remove the car from the car's current segment and place the
+       car in the appropriate one of the 4 outgoing segments from the 
+       intersection, and also the car's instance variable (that indicates
+       how many blocks is has to go before turning) will be decremented
+  - whenever an intersection learns that a car at one of its incoming
+       segments is not to turn at that intersection, the intersection can
+       remove the car from the car's current segment and place the
+       car in the appropriate one of the 4 outgoing segments from the 
+       intersection.
+  - when a car moves to an outgoing segment that causes the car to
+       leave the grid, the intersection having that outgoing segment can 
+       determine that fact
+  - when a car moves to an outgoing segment that doesn't cause the car to
+       leave the grid, another intersection will be able to notice that the 
+       car is in one of its incoming segments.
+For simplicity (and since only the top-level logic is being tested),
+here are some of the eventually-specified things not tested:
+  - a car must remain in a segment for a certain length of time
+  - a car can never move through an intersection within the same time-step
+      that the car begins to move through the intersection
+  - a segment has a maximum capacity of cars.
+
+When the tester program makes exactly one visit to each intersection within
+the grid, the output of the tester program should be *exactly* as follows,
+including the indicated blank lines (starting with the very next line)::
+
+The intersection at col 1 and row 1 reports
+  incoming segment having direction SOUTHWARD is empty
+  incoming segment having direction EASTWARD is nonempty
+   car#4 is removed and placed into outgoing segment having direction EASTWARD
+  incoming segment having direction NORTHWARD is empty
+  incoming segment having direction WESTWARD is empty 
+  outgoing segment having direction SOUTHWARD is empty
+  outgoing segment having direction EASTWARD is nonempty
+  outgoing segment having direction NORTHWARD is nonempty
+  outgoing segment having direction WESTWARD is empty
+
+              |    ^             |1   ^
+              v    |             v    |
+                           2
+         <-               <-                 <-
+row 2:        i[1,2]             i[2,2]
+   
+         ->               ->                 ->
+   
+              |    ^             |6   ^
+              v    |3            v    | 
+   
+         <-               <-                 <-
+row 1:        i[1,1]             i[2,1]
+                          4 
+         ->               ->                 ->
+              |    ^             |    ^
+              v    |             v    |5
+
+col:             1                  2
+
+The intersection at col 2 and row 1 reports
+  incoming segment having direction SOUTHWARD is nonempty and
+   car#6 is removed and placed into outgoing segment having direction EASTWARD
+   car#6 leaves the grid
+  incoming segment having direction EASTWARD is nonempty and
+   car#4 is removed and placed into outgoing segment having direction SOUTHWARD
+   car#4 leaves the grid
+  incoming segment having direction NORTHWARD is nonempty and
+   car#5 is removed and placed into outgoing segment having direction NORTHWARD
+  incoming segment having direction WESTWARD is empty 
+  outgoing segment having direction SOUTHWARD is nonempty
+  outgoing segment having direction EASTWARD is nonempty
+  outgoing segment having direction NORTHWARD is nonempty
+  outgoing segment having direction WESTWARD is empty
+
+              |    ^             |1   ^
+              v    |             v    |
+                           2
+         <-               <-                 <-
+row 2:        i[1,2]             i[2,2]
+   
+         ->               ->                 ->
+   
+              |    ^             |    ^
+              v    |3            v    |5 
+   
+         <-               <-                 <-
+row 1:        i[1,1]             i[2,1]
+                                             6 
+         ->               ->                 ->
+              |    ^             |4   ^
+              v    |             v    |
+
+col:             1                  2
+
+The intersection at col 1 and row 2 reports
+  incoming segment having direction SOUTHWARD is empty 
+  incoming segment having direction EASTWARD is empty 
+  incoming segment having direction NORTHWARD is nonempty and
+   car#3 is removed and placed into outgoing segment having direction EASTWARD
+  incoming segment having direction WESTWARD is nonempty and
+   car#2 is removed and placed into outgoing segment having direction WESTWARD
+   car#2 leaves the grid
+  outgoing segment having direction SOUTHWARD is empty
+  outgoing segment having direction EASTWARD is nonempty
+  outgoing segment having direction NORTHWARD is empty
+  outgoing segment having direction WESTWARD is nonempty
+
+              |    ^             |1   ^
+              v    |             v    |
+          2                 
+         <-               <-                 <-
+row 2:        i[1,2]             i[2,2]
+                          3 
+         ->               ->                 ->
+   
+              |    ^             |    ^
+              v    |3            v    |5
+   
+         <-               <-                 <-
+row 1:        i[1,1]             i[2,1]
+                                             6
+         ->               ->                 ->
+              |    ^             |4   ^
+              v    |             v    | 
+
+col:             1                  2
+
+The intersection at col 2 and row 2 reports
+  incoming segment having direction SOUTHWARD is nonempty and
+   car#1 is removed and placed into outgoing segment having direction SOUTHWARD
+  incoming segment having direction EASTWARD is nonempty and
+   car#3 is removed and placed into outgoing segment having direction EASTWARD
+   car#3 leaves the grid
+  incoming segment having direction NORTHWARD is nonempty and
+   car#5 is removed and placed into outgoing segment having direction WESTWARD
+  incoming segment having direction WESTWARD is empty
+  outgoing segment having direction SOUTHWARD is nonempty
+  outgoing segment having direction EASTWARD is nonempty
+  outgoing segment having direction NORTHWARD is empty
+  outgoing segment having direction WESTWARD is nonempty
+
+              |    ^             |    ^
+              v    |             v    |
+                           5
+         <-               <-                 <-
+row 2:        i[1,2]             i[2,2]
+                                             3 
+         ->               ->                 ->
+   
+              |    ^             |1   ^
+              v    |             v    | 
+   
+         <-               <-                 <-
+row 1:        i[1,1]             i[2,1]
+                                             6
+         ->               ->                 ->
+              |    ^             |4   ^
+              v    |             v    | 
+
+col:             1                  2
+
+

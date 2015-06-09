@@ -14,12 +14,14 @@ public class Segment extends Object {
     private int row;
     private int col;
     private int direction;
+    private int maxCapacity;
     private LinkedList<Car> queue;
 
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
     public Segment () {
+        this.maxCapacity = 3;
         this.queue = new LinkedList<Car>();
     }
     
@@ -34,20 +36,39 @@ public class Segment extends Object {
     }
     
     ///////////////////////////////////////////////////////////////////////
-    /////// Add car to segment queue
+    /////// Let car enter segment
     ///////////////////////////////////////////////////////////////////////
-    public void addCar (Car car) {
-        car.setCol(this.col);
-        car.setRow(this.row);
-        car.setDirectionCarIsHeaded(this.direction);
+    public void addCar(Car car) {
+        car.moveTo(this.row, this.col, this.direction);
         this.queue.add(car);
     }
     
     ///////////////////////////////////////////////////////////////////////
     /////// Get front most car in segment queue
     ///////////////////////////////////////////////////////////////////////
-    public Car getFirstCar () {
+    public Car getFirstCar() {
         return (Car)this.queue.peek();
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get front most car in segment queue and remove it from queue
+    ///////////////////////////////////////////////////////////////////////
+    public Car processFirstCar() {
+        return (Car)this.queue.getFirst();
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Is queue empty?
+    ///////////////////////////////////////////////////////////////////////
+    public boolean isCarWaiting() {
+        return (this.getFirstCar() != null);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get direction of segment
+    ///////////////////////////////////////////////////////////////////////
+    public int getDirection() {
+        return this.direction;
     }
     
     ///////////////////////////////////////////////////////////////////////
@@ -79,7 +100,7 @@ public class Segment extends Object {
     ///////////////////////////////////////////////////////////////////////
     /////// Equals method
     ///////////////////////////////////////////////////////////////////////
-    public boolean equals(int col, int row, int direction) {
+    public boolean equals(int row, int col, int direction) {
         return this.col == col
             && this.row == row
             && this.direction == direction;

@@ -35,18 +35,24 @@ public class TrafficModel extends Object {
         this.segments = new ArrayList<Segment>();
         this.cars = new ArrayList<Car>();
     }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public TrafficModel (int numIntersectionsInOneDirection,
+                         ArrayList<Car> cars) {
+        this(numIntersectionsInOneDirection);
+        this.cars = cars;
+    }
 
     ///////////////////////////////////////////////////////////////////////
     /////// Do test
     ///////////////////////////////////////////////////////////////////////
     public void doTest() {
-        DebugOutput.print("Create segments");
         this.createSegments();
-        DebugOutput.print("Create intersections");
         this.createIntersections();
-        DebugOutput.print("Create cars");
         this.createCars();
-        
+
         for (int row=0; row < numIntersectionsInOneDirection; row++) {
             for (int col=0; col < numIntersectionsInOneDirection; col++) {
                 this.intersections[row][col].doUnitOfWork();
@@ -111,19 +117,18 @@ public class TrafficModel extends Object {
     private void createIntersections() {
         for (int row=0; row < numIntersectionsInOneDirection; row++) {
             for (int col=0; col < numIntersectionsInOneDirection; col++) {
-
                 int r = row + 1;
                 int c = col + 1;
                 
                 Segment[] segments = new Segment[8];
-                segments[0] = this.findSegment(c, r, Direction.SOUTHWARD);
-                segments[1] = this.findSegment(c, r, Direction.EASTWARD);
-                segments[2] = this.findSegment(c, r, Direction.NORTHWARD);
-                segments[3] = this.findSegment(c, r, Direction.WESTWARD);
-                segments[4] = this.findSegment(c, r - 1, Direction.SOUTHWARD);
-                segments[5] = this.findSegment(c + 1, r, Direction.EASTWARD);
-                segments[6] = this.findSegment(c, r + 1, Direction.NORTHWARD);
-                segments[7] = this.findSegment(c - 1, r, Direction.WESTWARD);
+                segments[0] = this.findSegment(r, c, Direction.SOUTHWARD);
+                segments[1] = this.findSegment(r, c, Direction.EASTWARD);
+                segments[2] = this.findSegment(r, c, Direction.NORTHWARD);
+                segments[3] = this.findSegment(r, c, Direction.WESTWARD);
+                segments[4] = this.findSegment(r -1, c, Direction.SOUTHWARD);
+                segments[5] = this.findSegment(r, c + 1, Direction.EASTWARD);
+                segments[6] = this.findSegment(r + 1, c, Direction.NORTHWARD);
+                segments[7] = this.findSegment(r, c - 1, Direction.WESTWARD);
                 
                 this.intersections[row][col]
                 = new Intersection(r, c, segments);
@@ -133,13 +138,14 @@ public class TrafficModel extends Object {
     }
 
     ///////////////////////////////////////////////////////////////////////
-    /////// Create cars and put each in a northward segment
+    /////// Put cars into street grid
     ///////////////////////////////////////////////////////////////////////
     private void createCars() {
-        for (int i=0; i < numIntersectionsInOneDirection; i++) {
-            this.intersections[i][i].getInNorthSegment()
-            .addCar(new Car(i+1, false));
-        }
+        for (int i=0; i < this.cars.size(); i++) {
+            Car car = this.cars.get(i);
+            this.findSegment(car.getRow(), car.getCol(), car.getDirection()).
+                addCar(car);
 
+        }
     }
 }
