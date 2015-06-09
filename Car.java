@@ -11,31 +11,33 @@ import java.util.*;
 
 public class Car extends Object {
     
-    private boolean marked;
     private int idNumber;
+    private boolean marked;
     private int row;
     private int col;
     private int direction;
     private int blocksBeforeTurn;
     private int turnDirection;
-    private int entranceTime;
-    private int exitTime;
+    private int timeInGrid;
     private int timer;
+    private boolean exitedGrid;
 
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
     public Car () {
-        
+        this.timeInGrid = 0;
+        this.timer = 0;
+        this.exitedGrid = false;
     }
     
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
     public Car (int idNumber, boolean marked) {
+        this();
         this.idNumber = idNumber;
         this.marked = marked;
-        this.timer = 0;
     }
     
     ///////////////////////////////////////////////////////////////////////
@@ -58,6 +60,13 @@ public class Car extends Object {
         this.col = col;
         this.direction = direction;
     }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Is car marked?
+    ///////////////////////////////////////////////////////////////////////
+    public boolean isMarked() {
+        return this.marked;
+    }
 
     ///////////////////////////////////////////////////////////////////////
     /////// Get current row position of car
@@ -78,6 +87,20 @@ public class Car extends Object {
     ///////////////////////////////////////////////////////////////////////
     public int getDirection() {
         return this.direction;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get time in grid
+    ///////////////////////////////////////////////////////////////////////
+    public int getTimeInGrid() {
+        return this.timeInGrid;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Set car has exited grid
+    ///////////////////////////////////////////////////////////////////////
+    public void setExitedGrid() {
+        this.exitedGrid = true;
     }
     
     ///////////////////////////////////////////////////////////////////////
@@ -140,6 +163,10 @@ public class Car extends Object {
     /////// Decrease timer by 1
     ///////////////////////////////////////////////////////////////////////
     public void updateTimer() {
+        if (!exitedGrid) {
+            this.timeInGrid++;
+        }
+        
         if (this.timer > 0) {
             this.timer--;
         }

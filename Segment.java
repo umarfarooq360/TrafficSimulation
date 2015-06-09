@@ -33,13 +33,15 @@ public class Segment extends Object {
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
     public Segment (int row, int col, int direction, boolean isEntrance,
-                    boolean isExit, int minTimeToTravelSegment) {
+                    boolean isExit, int maxCapacity,
+                    int minTimeToTravelSegment) {
         this();
         this.row = row;
         this.col = col;
         this.direction = direction;
         this.isEntrance = isEntrance;
         this.isExit = isExit;
+        this.maxCapacity = maxCapacity;
         this.minTimeToTravelSegment = minTimeToTravelSegment;
     }
     

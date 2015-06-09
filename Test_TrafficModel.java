@@ -81,7 +81,7 @@ public class Test_TrafficModel extends Object {
             DebugOutput.print("direction the car will turn, when the car turns: "
                               + turnDirection);
             
-            cars.add(new Car(carNumber, false, blocksBeforeTurn, turnDirection,
+            cars.add(new Car(carNumber, true, blocksBeforeTurn, turnDirection,
                              initialRow, initialCol, initialDirection));
         }
         
@@ -89,7 +89,8 @@ public class Test_TrafficModel extends Object {
                 = new TrafficModel(numberOfIntersectionsInOneDirection,
                                    minTimeToTravelSegment,
                                    minTimeToChangeSegment, cars);
-        model.doTest();
+        String result = model.doTest();
+        System.out.println(result);
     }
 
 }

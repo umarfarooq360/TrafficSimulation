@@ -27,13 +27,13 @@ public class Turn extends Object {
     ///////////////////////////////////////////////////////////////////////
     public static String toString(int turn) {
         if (turn == NEVER_TURN) {
-            return "NEVER_TURN";
+            return "never turn";
         }
         if (turn == TURN_RIGHTWARD) {
-            return "TURN_RIGHTWARD";
+            return "turn rightward";
         }
         if (turn == TURN_LEFTWARD) {
-            return "TURN_LEFTWARD";
+            return "turn leftward";
         }
         return "";
     }

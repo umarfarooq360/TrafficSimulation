@@ -1,0 +1,132 @@
+#!/bin/csh
+echo "<UNIX-PROMPT> pwd"
+pwd
+echo "<UNIX-PROMPT> ls -tl commands_to_use_within_script_session"
+ls -tl commands_to_use_within_script_session
+echo " "
+echo " "
+echo "------- BEGIN COMMAND FILE USED WITH THE CURRENT DEMO --------------" 
+cat commands_to_use_within_script_session 
+echo "------- END   COMMAND FILE USED WITH THE CURRENT DEMO --------------"
+echo " "
+echo " "
+echo "<UNIX-PROMPT> ls -tl *java"
+ls -tl *java
+echo "<UNIX-PROMPT> cat TrafficView.java"
+cat TrafficView.java
+echo "<UNIX-PROMPT> cat TrafficModel.java"
+cat TrafficModel.java
+echo "<UNIX-PROMPT> cat Intersection.java"
+cat Intersection.java
+echo "<UNIX-PROMPT> cat Segment.java"
+cat Segment.java
+echo "<UNIX-PROMPT> cat Car.java"
+cat Cat.java
+echo "<UNIX-PROMPT> cat Direction.java"
+cat Direction.java
+echo "<UNIX-PROMPT> cat Turn.java"
+cat Turn.java
+echo "<UNIX-PROMPT> cat LightSignal.java"
+cat LightSignal.java
+echo "<UNIX-PROMPT> cat DebugOutput.java"
+cat DebugOutput.java
+echo "<UNIX-PROMPT> /bin/rm *class"
+/bin/rm *class
+echo "<UNIX-PROMPT> javac TrafficView.java"
+javac TrafficView.java
+echo "<UNIX-PROMPT> ls -tl *class"
+ls -tl *class
+echo " "
+echo " "
+echo " HERE ARE THE FOUR DATA FILES USED BY THE DEMO"
+echo " "
+echo " "
+echo "<UNIX-PROMPT> cat data1_for_TrafficView"
+cat data1_for_TrafficView
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+echo "<UNIX-PROMPT> cat data2_for_TrafficView"
+cat data2_for_TrafficView
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+echo "<UNIX-PROMPT> cat data3_for_TrafficView"
+cat data3_for_TrafficView
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+echo "<UNIX-PROMPT> cat data4_for_TrafficView"
+cat data4_for_TrafficView
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+echo "<UNIX-PROMPT> java TrafficView < data1_for_TrafficView"
+java TrafficView < data1_for_TrafficView
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+echo " NOW data1_for_TrafficView IS USED FOR A SECOND TIME IN A ROW"
+echo " "
+echo "<UNIX-PROMPT> java TrafficView < data1_for_TrafficView"
+java TrafficView < data1_for_TrafficView
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+echo " NOW data2_for_TrafficView IS USED"
+echo " "
+echo "<UNIX-PROMPT> java TrafficView < data2_for_TrafficView"
+java TrafficView < data2_for_TrafficView
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+echo " NOW data3_for_TrafficView IS USED"
+echo " "
+echo "<UNIX-PROMPT> java TrafficView < data3_for_TrafficView"
+java TrafficView < data3_for_TrafficView
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+echo "<UNIX-PROMPT> cat activate_DebugOutput.java"
+cat activate_DebugOutput.java
+echo "<UNIX-PROMPT> cat deactivate_DebugOutput.java"
+cat deactivate_DebugOutput.java
+echo "<UNIX-PROMPT> /bin/cp -p deactivate_DebugOutput.java DebugOutput.java"
+/bin/cp -p deactivate_DebugOutput.java DebugOutput.java
+echo "<UNIX-PROMPT> javac DebugOutput.java"
+javac DebugOutput.java
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+echo " NOW data4_for_TrafficView IS USED, WHILE DebugOutput IS DEACTIVATED"
+echo " "
+echo "<UNIX-PROMPT> java TrafficView < data4_for_TrafficView"
+java TrafficView < data4_for_TrafficView
+echo " "
+echo " "
+echo " "
+echo " "
+echo " "
+echo " NOW DebugOutput IS RESTORED TO THE ACTIVATED STATE"
+echo "<UNIX-PROMPT> /bin/cp -p activate_DebugOutput.java DebugOutput.java"
+/bin/cp -p activate_DebugOutput.java DebugOutput.java
+echo "<UNIX-PROMPT> javac DebugOutput.java"
+javac DebugOutput.java

@@ -27,7 +27,7 @@ public class Intersection extends Object {
     ///////////////////////////////////////////////////////////////////////
     public Intersection () {
         this.minTimeToChangeSegment = 0;
-        this.trafficLight = new TrafficLight(4, 2);
+        this.trafficLight = new TrafficLight(1, 1);
         this.cars = new ArrayList<Car>();
         this.outSegmentsForCars = new ArrayList<Segment>();
     }
@@ -35,19 +35,24 @@ public class Intersection extends Object {
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
-    public Intersection (int row, int col, int minTimeToChangeSegment) {
+    public Intersection (int row, int col, int minTimeToChangeSegment,
+                         int minTimeLightGreen, int minTimeToChangeLight) {
         this();
         this.row = row;
         this.col = col;
         this.minTimeToChangeSegment = minTimeToChangeSegment;
+        this.trafficLight = new TrafficLight(minTimeLightGreen,
+                                             minTimeToChangeLight);
     }
     
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
     public Intersection (int row, int col, int minTimeToChangeSegment,
+                         int minTimeLightGreen, int minTimeToChangeLight,
                          Segment[] segments) {
-        this(row, col, minTimeToChangeSegment);
+        this(row, col, minTimeToChangeSegment,
+             minTimeLightGreen, minTimeToChangeLight);
         if (segments.length == 8) {
             this.inSouthSegment = segments[0];
             this.inEastSegment = segments[1];
@@ -292,6 +297,7 @@ public class Intersection extends Object {
                               + " having direction "
                               + Direction.toString(toSegment.getDirection()));
             if (toSegment.isExit()) {
+                car.setExitedGrid();
                 DebugOutput.print("  "
                                   + car
                                   + " leaves the grid");
