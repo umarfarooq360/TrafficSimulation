@@ -1,0 +1,213 @@
+Script started on Wed Mar 18 17:46:20 2015
+[?1034hbash-3.2$ ./commands_subset1
+/Users/hh6eb/Desktop/subset1
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users  1630 Mar 18 17:44 TrafficModel.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users  2456 Mar 18 17:43 Car.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users   917 Mar 18 17:43 Direction.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users  1158 Mar 18 17:43 Test_TrafficModel.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users   748 Mar 18 16:56 Intersection.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users   732 Mar 18 16:56 Segment.java
+-rwx--x--x  1 hh6eb  RICHMOND\Domain Users   662 Feb 28 17:03 DebugOutput.java
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** TrafficModel
+// *****************************************************************************
+// *****************************************************************************
+
+
+import java.util.*;
+
+public class TrafficModel extends Object {
+
+    private ArrayList<Car> cars;
+    private int numOfCars;
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public TrafficModel () {
+        this.cars = new ArrayList<Car>();
+        this.numOfCars = 0;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public TrafficModel (int numOfCars) {
+        this();
+        this.numOfCars = numOfCars;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Run simulation
+    ///////////////////////////////////////////////////////////////////////
+    public void doTest() {
+        
+        for (int i=0; i < numOfCars; i++) {
+            this.cars.add(i, new Car(i+1, false, 1, 0, Direction.NORTHWARD));
+        }
+        
+        for (int i=0; i < this.cars.size(); i++) {
+            DebugOutput.print("" + this.cars.get(i));
+        }
+    }
+}
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** Test_TrafficModel
+// *****************************************************************************
+// *****************************************************************************
+
+import java.io.*;
+import java.util.*;
+
+public class Test_TrafficModel extends Object {
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Main
+    ///////////////////////////////////////////////////////////////////////
+    public static void main(String[] args) throws FileNotFoundException {
+        Scanner input = new Scanner(System.in);
+        
+        for (int i=0; i < 17; i++) {
+            input.nextLine();
+        }
+        
+        int numOfCars = input.nextInt();
+        DebugOutput.print("The number of cars to create: " + numOfCars);
+        
+        TrafficModel model = new TrafficModel(numOfCars);
+        model.doTest();
+    }
+
+}
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** Car
+// *****************************************************************************
+// *****************************************************************************
+
+import java.util.*;
+
+public class Car extends Object {
+    
+    private boolean marked;
+    private int idNumber;
+    private int row;
+    private int col;
+    private int directionCarIsHeaded;
+    private int entranceTime;
+    private int exitTime;
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Car () {
+        
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Car (int idNumber, boolean marked,
+                int row, int col, int directionCarIsHeaded) {
+        this.idNumber = idNumber;
+        this.marked = marked;
+        this.row = row;
+        this.col = col;
+        this.directionCarIsHeaded = directionCarIsHeaded;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get current row position of car
+    ///////////////////////////////////////////////////////////////////////
+    public int getRow() {
+        return this.row;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get current column position of car
+    ///////////////////////////////////////////////////////////////////////
+    public int getCol() {
+        return this.col;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get current direction the car is heading
+    ///////////////////////////////////////////////////////////////////////
+    public int getDirectionCarIsHeaded() {
+        return this.directionCarIsHeaded;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// String representation of car
+    ///////////////////////////////////////////////////////////////////////
+    public String toString() {
+        return "Car " + this.idNumber;
+    }
+
+}
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** Direction
+// *****************************************************************************
+// *****************************************************************************
+
+
+import java.util.*;
+
+public class Direction extends Object {
+
+    public static final int SOUTHWARD  = 0;
+    public static final int EASTWARD   = 1;
+    public static final int NORTHWARD  = 2;
+    public static final int WESTWARD   = 3;
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Direction () {
+        
+    }
+}
+filename: data1_for_checking_top_level_logic 
+When checking the top-level logic, the Java input statements should skip the 
+first 17 lines in any file of data, then read a line as the value of 
+numIntersectionsInOneDirection, then skip a line, then read a line as the 
+number of cars to be created, then skip every other line (starting with skipping
+the very next line) until the quantity of input numbers read is exactly
+   6 times the number of cars to be created,
+and then the Java program should no longer read any lines from the data file.
+direction:  SOUTHWARD == 0; EASTWARD == 1; NORTHWARD == 2; WESTWARD == 3
+The following three lines illustrate the somewhat-tricky terminology:
+when a car travels south, the car travels SOUTHWARD
+when an incoming segment of an intersection is aiming SOUTHWARD, the segment 
+  is immediately north of that intersection
+when an outgoing segment of an intersection is aiming SOUTHWARD, the segment
+  is immediately south of that intersection
+turning direction: NEVER_TURN == 0; TURN_RIGHTWARD == 1; TURN_LEFTWARD == -1
+number of cars created for the test:
+6
+DEBUGThe number of cars to create: 6
+DEBUGCar 1
+DEBUGCar 2
+DEBUGCar 3
+DEBUGCar 4
+DEBUGCar 5
+DEBUGCar 6
+bash-3.2$ exit
+exit
+
+Script done on Wed Mar 18 17:46:34 2015

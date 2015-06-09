@@ -1,21 +1,15 @@
-/*******************************************************
-/*
-/* Project: Traffic Flow Simulation
-/*
-/* Programmers: Hunter Lambert
-/*              Omar Farooq
-/*              Tyler Barnett
-/*              Hans-Peter Hoellwirth
-/******************************************************/
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** Car
+// *****************************************************************************
+// *****************************************************************************
 
 import java.util.*;
 
 public class Car extends Object {
-
-    public static int South = 1;
-    public static int North = 2;
-    public static int East  = 3;
-    public static int West  = 4;
     
     private boolean marked;
     private int idNumber;
@@ -24,37 +18,50 @@ public class Car extends Object {
     private int directionCarIsHeaded;
     private int entranceTime;
     private int exitTime;
-    
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
     public Car () {
         
     }
 
-    public Car (boolean marked, int idNumber,
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Car (int idNumber, boolean marked,
                 int row, int col, int directionCarIsHeaded) {
-        this.marked = marked;
         this.idNumber = idNumber;
+        this.marked = marked;
         this.row = row;
         this.col = col;
         this.directionCarIsHeaded = directionCarIsHeaded;
     }
 
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get current row position of car
+    ///////////////////////////////////////////////////////////////////////
     public int getRow() {
         return this.row;
     }
-    
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get current column position of car
+    ///////////////////////////////////////////////////////////////////////
     public int getCol() {
         return this.col;
     }
-    
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get current direction the car is heading
+    ///////////////////////////////////////////////////////////////////////
     public int getDirectionCarIsHeaded() {
         return this.directionCarIsHeaded;
     }
-    
-    public void move() {
-        TrafficModel.callNextSegment(this.idNumber, this.row, this.col,
-                                     this.directionCarIsHeaded);
-    }
-    
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// String representation of car
+    ///////////////////////////////////////////////////////////////////////
     public String toString() {
         return "Car " + this.idNumber;
     }

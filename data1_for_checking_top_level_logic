@@ -1,0 +1,18 @@
+filename: data1_for_checking_top_level_logic 
+When checking the top-level logic, the Java input statements should skip the 
+first 17 lines in any file of data, then read a line as the value of 
+numIntersectionsInOneDirection, then skip a line, then read a line as the 
+number of cars to be created, then skip every other line (starting with skipping
+the very next line) until the quantity of input numbers read is exactly
+   6 times the number of cars to be created,
+and then the Java program should no longer read any lines from the data file.
+direction:  SOUTHWARD == 0; EASTWARD == 1; NORTHWARD == 2; WESTWARD == 3
+The following three lines illustrate the somewhat-tricky terminology:
+when a car travels south, the car travels SOUTHWARD
+when an incoming segment of an intersection is aiming SOUTHWARD, the segment 
+  is immediately north of that intersection
+when an outgoing segment of an intersection is aiming SOUTHWARD, the segment
+  is immediately south of that intersection
+turning direction: NEVER_TURN == 0; TURN_RIGHTWARD == 1; TURN_LEFTWARD == -1
+number of cars created for the test:
+6

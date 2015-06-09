@@ -1,0 +1,13 @@
+pwd
+ls -tl *java
+cat TrafficModel.java
+cat Test_TrafficModel.java
+cat Car.java
+cat Direction.java
+cat data1_for_checking_top_level_logic
+rm *class
+javac TrafficModel.java
+javac Test_TrafficModel.java
+javac Car.java
+javac Direction.java
+java Test_TrafficModel < data1_for_checking_top_level_logic
