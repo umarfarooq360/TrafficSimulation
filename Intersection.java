@@ -14,6 +14,7 @@ public class Intersection extends Object {
     private int row;
     private int col;
     private int minTimeToChangeSegment;
+    private TrafficLight trafficLight;
     private Segment inSouthSegment, inEastSegment,
                     inNorthSegment, inWestSegment;
     private Segment outSouthSegment, outEastSegment,
@@ -26,6 +27,7 @@ public class Intersection extends Object {
     ///////////////////////////////////////////////////////////////////////
     public Intersection () {
         this.minTimeToChangeSegment = 0;
+        this.trafficLight = new TrafficLight(4, 2);
         this.cars = new ArrayList<Car>();
         this.outSegmentsForCars = new ArrayList<Segment>();
     }
@@ -124,6 +126,7 @@ public class Intersection extends Object {
                           + this.row
                           + " reports");
         this.removeCarsFromIntersection();
+        this.updateTrafficLight();
         
         if (!this.isCarInIntersection()) {
             this.processIncomingSegment(this.inSouthSegment);
@@ -139,19 +142,38 @@ public class Intersection extends Object {
     }
     
     ///////////////////////////////////////////////////////////////////////
-    /////// Process outgoing segment
+    /////// Update traffic light
     ///////////////////////////////////////////////////////////////////////
-    private void processOutgoingSegment(Segment segment) {
-        if (segment.isCarWaiting()) {
-            DebugOutput.print("  outgoing segment having direction "
-                              + Direction.toString(segment.getDirection())
-                              + " is nonempty");
+    private void updateTrafficLight() {
+        this.trafficLight.updateTimer();
+        
+        if (shouldRequestTrafficLightSwitch()) {
+            this.trafficLight.requestSwitchStatus();
         }
-        else {
-            DebugOutput.print("  outgoing segment having direction "
-                              + Direction.toString(segment.getDirection())
-                              + " is empty");
+        DebugOutput.print("  " + this.trafficLight);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Should request traffic light status change?
+    ///////////////////////////////////////////////////////////////////////
+    private boolean shouldRequestTrafficLightSwitch() {
+        if (this.inSouthSegment.isCarWaiting() &&
+            this.trafficLight.getStatus() == LightSignal.GREEN_EW) {
+            return true;
         }
+        if (this.inEastSegment.isCarWaiting() &&
+            this.trafficLight.getStatus() == LightSignal.GREEN_NS) {
+            return true;
+        }
+        if (this.inNorthSegment.isCarWaiting() &&
+            this.trafficLight.getStatus() == LightSignal.GREEN_EW) {
+            return true;
+        }
+        if (this.inWestSegment.isCarWaiting() &&
+            this.trafficLight.getStatus() == LightSignal.GREEN_NS) {
+            return true;
+        }
+        return false;
     }
     
     ///////////////////////////////////////////////////////////////////////
@@ -173,24 +195,30 @@ public class Intersection extends Object {
                                   + " time unit(s) to go)");
                 
                 if (segment.isCarWaiting()) {
-                    int nextDirection = car.getNextDirection();
+                    if (this.trafficLight.
+                        isGreenInDirection(segment.getDirection())) {
+                        int nextDirection = car.getNextDirection();
             
-                    if (nextDirection == Direction.SOUTHWARD)
-                        this.putCarInIntersection(segment,
-                                                  this.outSouthSegment,
-                                                  car);
-                    if (nextDirection == Direction.EASTWARD)
-                        this.putCarInIntersection(segment,
-                                                  this.outEastSegment,
-                                                  car);
-                    if (nextDirection == Direction.NORTHWARD)
-                        this.putCarInIntersection(segment,
-                                                  this.outNorthSegment,
-                                                  car);
-                    if (nextDirection == Direction.WESTWARD)
-                        this.putCarInIntersection(segment,
-                                                  this.outWestSegment,
-                                                  car);
+                        if (nextDirection == Direction.SOUTHWARD)
+                            this.putCarInIntersection(segment,
+                                                      this.outSouthSegment,
+                                                      car);
+                        if (nextDirection == Direction.EASTWARD)
+                            this.putCarInIntersection(segment,
+                                                      this.outEastSegment,
+                                                      car);
+                        if (nextDirection == Direction.NORTHWARD)
+                            this.putCarInIntersection(segment,
+                                                      this.outNorthSegment,
+                                                      car);
+                        if (nextDirection == Direction.WESTWARD)
+                            this.putCarInIntersection(segment,
+                                                      this.outWestSegment,
+                                                      car);
+                    } else {
+                        DebugOutput.print("   but can not move because of"
+                                          + " red traffic light");
+                    }
                 }
             }
             else {
@@ -201,6 +229,21 @@ public class Intersection extends Object {
         }
     }
     
+    ///////////////////////////////////////////////////////////////////////
+    /////// Process outgoing segment
+    ///////////////////////////////////////////////////////////////////////
+    private void processOutgoingSegment(Segment segment) {
+        if (segment.isCarWaiting()) {
+            DebugOutput.print("  outgoing segment having direction "
+                              + Direction.toString(segment.getDirection())
+                              + " is nonempty");
+        }
+        else {
+            DebugOutput.print("  outgoing segment having direction "
+                              + Direction.toString(segment.getDirection())
+                              + " is empty");
+        }
+    }
     
     ///////////////////////////////////////////////////////////////////////
     /////// Put car into intersection
