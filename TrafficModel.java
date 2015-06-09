@@ -96,12 +96,18 @@ public class TrafficModel extends Object {
     /////// Create and print new segment
     ///////////////////////////////////////////////////////////////////////
     private void createSegment(int row, int col, int direction) {
+        boolean isEntrance = (row == 1 && direction == Direction.NORTHWARD)
+                          || (col == 1 && direction == Direction.EASTWARD)
+                          || (row == numIntersectionsInOneDirection &&
+                              direction == Direction.SOUTHWARD)
+                          || (col == numIntersectionsInOneDirection &&
+                              direction == Direction.WESTWARD);
         boolean isExit = row == 0
                         || col == 0
                         || row == (numIntersectionsInOneDirection + 1)
                         || col == (numIntersectionsInOneDirection + 1);
         
-        Segment segment = new Segment(row, col, direction, isExit,
+        Segment segment = new Segment(row, col, direction, isEntrance, isExit,
                                       this.minTimeToTravelSegment);
         segments.add(segment);
     }
@@ -163,7 +169,7 @@ public class TrafficModel extends Object {
                 segments[1] = this.findSegment(r, c, Direction.EASTWARD);
                 segments[2] = this.findSegment(r, c, Direction.NORTHWARD);
                 segments[3] = this.findSegment(r, c, Direction.WESTWARD);
-                segments[4] = this.findSegment(r -1, c, Direction.SOUTHWARD);
+                segments[4] = this.findSegment(r - 1, c, Direction.SOUTHWARD);
                 segments[5] = this.findSegment(r, c + 1, Direction.EASTWARD);
                 segments[6] = this.findSegment(r + 1, c, Direction.NORTHWARD);
                 segments[7] = this.findSegment(r, c - 1, Direction.WESTWARD);

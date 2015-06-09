@@ -16,6 +16,7 @@ public class Segment extends Object {
     private int direction;
     private int maxCapacity;
     private int minTimeToTravelSegment;
+    private boolean isEntrance;
     private boolean isExit;
     private LinkedList<Car> queue;
 
@@ -23,7 +24,7 @@ public class Segment extends Object {
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
     public Segment () {
-        this.maxCapacity = 3000;
+        this.maxCapacity = 1;
         this.minTimeToTravelSegment = 0;
         this.queue = new LinkedList<Car>();
     }
@@ -31,12 +32,13 @@ public class Segment extends Object {
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
-    public Segment (int row, int col, int direction, boolean isExit,
-                    int minTimeToTravelSegment) {
+    public Segment (int row, int col, int direction, boolean isEntrance,
+                    boolean isExit, int minTimeToTravelSegment) {
         this();
         this.row = row;
         this.col = col;
         this.direction = direction;
+        this.isEntrance = isEntrance;
         this.isExit = isExit;
         this.minTimeToTravelSegment = minTimeToTravelSegment;
     }
@@ -51,6 +53,11 @@ public class Segment extends Object {
             this.queue.add(car);
             return true;
         }
+        DebugOutput.print("   "
+                          + car
+                          + " can not enter "
+                          + this
+                          + " (no space)");
         return false;
     }
     
@@ -87,6 +94,8 @@ public class Segment extends Object {
     /////// Has segment space for additonal car?
     ///////////////////////////////////////////////////////////////////////
     public boolean hasSpace() {
+        if (this.isEntrance || this.isExit)
+          return true;
         return this.queue.size() < this.maxCapacity;
     }
     

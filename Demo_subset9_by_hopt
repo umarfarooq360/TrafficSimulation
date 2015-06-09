@@ -1,0 +1,2498 @@
+Script started on Mon Apr  6 09:44:37 2015
+[?1034hbash-3.2$ ./co[K[Kdata1[K[K[K[K[Kcommands_subset9
+<UNIX-PROMPT> pwd
+/Users/hh6eb/Desktop/subset9
+<UNIX-PROMPT> ls -tl *java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users   5636 Apr  6 09:32 Segment.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users   8403 Apr  6 09:25 TrafficModel.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users  12526 Mar 30 23:00 Intersection.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users   5870 Mar 30 22:17 Car.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users   3761 Mar 30 21:34 Test_TrafficModel.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users   2579 Mar 26 18:45 Direction.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users    663 Mar 26 18:35 DebugOutput.java
+-rwx------@ 1 hh6eb  RICHMOND\Domain Users   1376 Mar 26 18:27 Turn.java
+<UNIX-PROMPT> cat Test_TrafficModel.java
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** Test_TrafficModel
+// *****************************************************************************
+// *****************************************************************************
+
+import java.io.*;
+import java.util.*;
+
+public class Test_TrafficModel extends Object {
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Main
+    ///////////////////////////////////////////////////////////////////////
+    public static void main(String[] args) throws FileNotFoundException {
+        Scanner input = new Scanner(System.in);
+        
+        for (int i=0; i < 17; i++) {
+            input.nextLine();
+        }
+        
+        int numberOfIntersectionsInOneDirection = input.nextInt();
+        DebugOutput.print("Number of intersections in one direction: "
+                          + numberOfIntersectionsInOneDirection);
+
+        input.nextLine();
+        input.nextLine();
+        int minTimeToTravelSegment = input.nextInt();
+        DebugOutput.print("Minimum time to travel segment: "
+                          + minTimeToTravelSegment);
+ 
+        input.nextLine();
+        input.nextLine();
+        int minTimeToChangeSegment = input.nextInt();
+        DebugOutput.print("Minimum time to change segment: "
+                          + minTimeToChangeSegment);
+        
+        input.nextLine();
+        input.nextLine();
+        int numberOfCars = input.nextInt();
+        DebugOutput.print("Number of cars created for the test: "
+                          + numberOfCars);
+        
+        ArrayList<Car> cars = new ArrayList<Car>();
+        for (int i=0; i < numberOfCars; i++) {
+            input.nextLine();
+            input.nextLine();
+            int carNumber = input.nextInt();
+            DebugOutput.print("Car number: " + carNumber);
+            
+            input.nextLine();
+            input.nextLine();
+            int initialCol = input.nextInt();
+            DebugOutput.print("born in the segment that is positioned at col: "
+                              + initialCol);
+            
+            input.nextLine();
+            input.nextLine();
+            int initialRow = input.nextInt();
+            DebugOutput.print("born in the segment that is positioned at row: "
+                              + initialRow);
+            
+            input.nextLine();
+            input.nextLine();
+            int initialDirection = input.nextInt();
+            DebugOutput.print("born in the segment that is oriented in direction: "
+                              + initialDirection);
+
+            input.nextLine();
+            input.nextLine();
+            int blocksBeforeTurn = input.nextInt();
+            DebugOutput.print("additional blocks to travel prior to turning "
+                              + blocksBeforeTurn);
+            
+            input.nextLine();
+            input.nextLine();
+            int turnDirection = input.nextInt();
+            DebugOutput.print("direction the car will turn, when the car turns: "
+                              + turnDirection);
+            
+            cars.add(new Car(carNumber, false, blocksBeforeTurn, turnDirection,
+                             initialRow, initialCol, initialDirection));
+        }
+        
+        TrafficModel model
+                = new TrafficModel(numberOfIntersectionsInOneDirection,
+                                   minTimeToTravelSegment,
+                                   minTimeToChangeSegment, cars);
+        model.doTest();
+    }
+
+}
+<UNIX-PROMPT> cat TrafficModel.java
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** TrafficModel
+//
+// Subset 8 comments:
+// - car tracks the time to go before reaching the intersection rather than the
+//   number of time units already spent in the segment/intersection
+// - allows already for turns in intersection
+// - allows for multiple cars in intersection
+//
+// *****************************************************************************
+// *****************************************************************************
+
+
+import java.util.*;
+
+public class TrafficModel extends Object {
+
+    private Intersection intersections[][];
+    private ArrayList<Segment> segments;
+    private ArrayList<Car> cars;
+    private int numIntersectionsInOneDirection;
+    private int minTimeToTravelSegment;
+    private int minTimeToChangeSegment;
+    private int simulationLength;
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public TrafficModel () {
+        this.numIntersectionsInOneDirection = 0;
+        this.minTimeToTravelSegment = 0;
+        this.minTimeToChangeSegment = 0;
+        this.simulationLength = 20;
+        this.cars = new ArrayList<Car>();
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public TrafficModel (int numIntersectionsInOneDirection,
+                         int minTimeToTravelSegment,
+                         int minTimeToChangeSegment) {
+        this();
+        this.numIntersectionsInOneDirection = numIntersectionsInOneDirection;
+        this.minTimeToTravelSegment = minTimeToTravelSegment;
+        this.minTimeToChangeSegment = minTimeToChangeSegment;
+        
+        this.intersections = new Intersection[numIntersectionsInOneDirection]
+                                            [numIntersectionsInOneDirection];
+        this.segments = new ArrayList<Segment>();
+        this.cars = new ArrayList<Car>();
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public TrafficModel (int numIntersectionsInOneDirection,
+                         int minTimeToTravelSegment,
+                         int minTimeToChangeSegment,
+                         ArrayList<Car> cars) {
+        this(numIntersectionsInOneDirection,
+             minTimeToTravelSegment,
+             minTimeToChangeSegment);
+        this.cars = cars;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Do test
+    ///////////////////////////////////////////////////////////////////////
+    public void doTest() {
+        this.createSegments();
+        this.createIntersections();
+        this.createCars();
+        
+        for (int time=1; time <= this.simulationLength; time++)
+        {
+            DebugOutput.print("TIME: " + time);
+            
+            for (int i=0; i < this.cars.size(); i++) {
+                this.cars.get(i).updateTimer();
+            }
+
+            for (int row=0; row < numIntersectionsInOneDirection; row++) {
+                for (int col=0; col < numIntersectionsInOneDirection; col++) {
+                    this.intersections[row][col].doUnitOfWork();
+                }
+            }
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Create and print new segment
+    ///////////////////////////////////////////////////////////////////////
+    private void createSegment(int row, int col, int direction) {
+        boolean isEntrance = (row == 1 && direction == Direction.NORTHWARD)
+                          || (col == 1 && direction == Direction.EASTWARD)
+                          || (row == numIntersectionsInOneDirection &&
+                              direction == Direction.SOUTHWARD)
+                          || (col == numIntersectionsInOneDirection &&
+                              direction == Direction.WESTWARD);
+        boolean isExit = row == 0
+                        || col == 0
+                        || row == (numIntersectionsInOneDirection + 1)
+                        || col == (numIntersectionsInOneDirection + 1);
+        
+        Segment segment = new Segment(row, col, direction, isEntrance, isExit,
+                                      this.minTimeToTravelSegment);
+        segments.add(segment);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Find segment
+    ///////////////////////////////////////////////////////////////////////
+    private Segment findSegment(int row, int col, int direction) {
+        for (int i=0; i < segments.size(); i++) {
+            if (segments.get(i).equals(row, col, direction)) {
+                return segments.get(i);
+            }
+        }
+        DebugOutput.print("Could not find segment: "
+                          + "col: "
+                          + col
+                          + "/"
+                          + "row: "
+                          + row
+                          + "/"
+                          + Direction.toString(direction));
+        return null;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Initialize all segments
+    ///////////////////////////////////////////////////////////////////////
+    private void createSegments() {
+        for (int row=0; row <= numIntersectionsInOneDirection + 1; row++) {
+            for (int col=0; col <= numIntersectionsInOneDirection + 1;
+                 col++) {
+                if (col > 0 && col < numIntersectionsInOneDirection + 1) {
+                    if (row > 0)
+                        createSegment(row, col, Direction.NORTHWARD);
+                    if (row < numIntersectionsInOneDirection + 1)
+                        createSegment(row, col, Direction.SOUTHWARD);
+                }
+                if (row > 0 && row < numIntersectionsInOneDirection +1 ) {
+                    if (col > 0)
+                        createSegment(row, col, Direction.EASTWARD);
+                    if (col < numIntersectionsInOneDirection + 1)
+                        createSegment(row, col, Direction.WESTWARD);
+                }
+            }
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Initialize all intersections
+    ///////////////////////////////////////////////////////////////////////
+    private void createIntersections() {
+        for (int row=0; row < numIntersectionsInOneDirection; row++) {
+            for (int col=0; col < numIntersectionsInOneDirection; col++) {
+                int r = row + 1;
+                int c = col + 1;
+                
+                Segment[] segments = new Segment[8];
+                segments[0] = this.findSegment(r, c, Direction.SOUTHWARD);
+                segments[1] = this.findSegment(r, c, Direction.EASTWARD);
+                segments[2] = this.findSegment(r, c, Direction.NORTHWARD);
+                segments[3] = this.findSegment(r, c, Direction.WESTWARD);
+                segments[4] = this.findSegment(r -1, c, Direction.SOUTHWARD);
+                segments[5] = this.findSegment(r, c + 1, Direction.EASTWARD);
+                segments[6] = this.findSegment(r + 1, c, Direction.NORTHWARD);
+                segments[7] = this.findSegment(r, c - 1, Direction.WESTWARD);
+                
+                this.intersections[row][col]
+                = new Intersection(r, c, this.minTimeToChangeSegment, segments);
+            }
+            
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Put cars into street grid
+    ///////////////////////////////////////////////////////////////////////
+    private void createCars() {
+        for (int i=0; i < this.cars.size(); i++) {
+            Car car = this.cars.get(i);
+            this.findSegment(car.getRow(), car.getCol(), car.getDirection()).
+                addCar(car);
+
+        }
+    }
+}
+<UNIX-PROMPT> cat Intersection.java
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** Intersection
+// *****************************************************************************
+// *****************************************************************************
+
+import java.util.*;
+
+public class Intersection extends Object {
+    
+    private int row;
+    private int col;
+    private int minTimeToChangeSegment;
+    private Segment inSouthSegment, inEastSegment,
+                    inNorthSegment, inWestSegment;
+    private Segment outSouthSegment, outEastSegment,
+                    outNorthSegment, outWestSegment;
+    private ArrayList<Car> cars;
+    private ArrayList<Segment> outSegmentsForCars;
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Intersection () {
+        this.minTimeToChangeSegment = 0;
+        this.cars = new ArrayList<Car>();
+        this.outSegmentsForCars = new ArrayList<Segment>();
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Intersection (int row, int col, int minTimeToChangeSegment) {
+        this();
+        this.row = row;
+        this.col = col;
+        this.minTimeToChangeSegment = minTimeToChangeSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Intersection (int row, int col, int minTimeToChangeSegment,
+                         Segment[] segments) {
+        this(row, col, minTimeToChangeSegment);
+        if (segments.length == 8) {
+            this.inSouthSegment = segments[0];
+            this.inEastSegment = segments[1];
+            this.inNorthSegment = segments[2];
+            this.inWestSegment = segments[3];
+            this.outSouthSegment = segments[4];
+            this.outEastSegment = segments[5];
+            this.outNorthSegment = segments[6];
+            this.outWestSegment = segments[7];
+        }
+    }
+ 
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get incoming southward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getInSouthSegment() {
+        return this.inSouthSegment;
+    }
+ 
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get incoming eastward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getInEastSegment() {
+        return this.inEastSegment;
+    }
+   
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get incoming northward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getInNorthSegment() {
+        return this.inNorthSegment;
+    }
+   
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get incoming westward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getInWestSegment() {
+        return this.inWestSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get outgoing southward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getOutSouthSegment() {
+        return this.outSouthSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get outgoing eastward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getOutEastSegment() {
+        return this.outEastSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get outgoing northward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getOutNorthSegment() {
+        return this.outNorthSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get outgoing westward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getOutWestSegment() {
+        return this.outWestSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Do unit of work
+    ///////////////////////////////////////////////////////////////////////
+    public void doUnitOfWork () {
+        DebugOutput.print("The intersection at col "
+                          + this.col
+                          + " and row "
+                          + this.row
+                          + " reports");
+        this.removeCarsFromIntersection();
+        
+        if (!this.isCarInIntersection()) {
+            this.processIncomingSegment(this.inSouthSegment);
+            this.processIncomingSegment(this.inEastSegment);
+            this.processIncomingSegment(this.inNorthSegment);
+            this.processIncomingSegment(this.inWestSegment);
+        
+            this.processOutgoingSegment(this.outSouthSegment);
+            this.processOutgoingSegment(this.outEastSegment);
+            this.processOutgoingSegment(this.outNorthSegment);
+            this.processOutgoingSegment(this.outWestSegment);
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Process outgoing segment
+    ///////////////////////////////////////////////////////////////////////
+    private void processOutgoingSegment(Segment segment) {
+        if (segment.isCarWaiting()) {
+            DebugOutput.print("  outgoing segment having direction "
+                              + Direction.toString(segment.getDirection())
+                              + " is nonempty");
+        }
+        else {
+            DebugOutput.print("  outgoing segment having direction "
+                              + Direction.toString(segment.getDirection())
+                              + " is empty");
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Process incoming segment
+    ///////////////////////////////////////////////////////////////////////
+    private void processIncomingSegment(Segment segment) {
+        if (!this.isCarInIntersection()) {
+            if (!segment.isEmpty()) {
+                DebugOutput.print("  incoming segment having direction "
+                                  + Direction.toString(segment.getDirection())
+                                  + " is nonempty and");
+ 
+                Car car = segment.getFirstCar();
+                DebugOutput.print("   "
+                                  + car
+                                  + " is closest to the intersection"
+                                  + " ("
+                                  + car.getTimer()
+                                  + " time unit(s) to go)");
+                
+                if (segment.isCarWaiting()) {
+                    int nextDirection = car.getNextDirection();
+            
+                    if (nextDirection == Direction.SOUTHWARD)
+                        this.putCarInIntersection(segment,
+                                                  this.outSouthSegment,
+                                                  car);
+                    if (nextDirection == Direction.EASTWARD)
+                        this.putCarInIntersection(segment,
+                                                  this.outEastSegment,
+                                                  car);
+                    if (nextDirection == Direction.NORTHWARD)
+                        this.putCarInIntersection(segment,
+                                                  this.outNorthSegment,
+                                                  car);
+                    if (nextDirection == Direction.WESTWARD)
+                        this.putCarInIntersection(segment,
+                                                  this.outWestSegment,
+                                                  car);
+                }
+            }
+            else {
+                DebugOutput.print("  incoming segment having direction "
+                                  + Direction.toString(segment.getDirection())
+                                  + " is empty");
+            }
+        }
+    }
+    
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Put car into intersection
+    ///////////////////////////////////////////////////////////////////////
+    private void putCarInIntersection (Segment fromSegment, Segment toSegment,
+                                      Car car) {
+        if (toSegment.hasSpace()) {
+            fromSegment.removeFirstCar();
+            this.cars.add(car);
+            this.outSegmentsForCars.add(toSegment);
+            car.setTimeToTraverse(this.minTimeToChangeSegment);
+            
+            DebugOutput.print("   "
+                              + car
+                              + " is removed and placed into intersection");
+        }
+        else {
+            DebugOutput.print("   "
+                              + car
+                              + " cannot be removed and placed"
+                              + " into outgoing segment having direction "
+                              + Direction.toString(toSegment.getDirection()));
+            DebugOutput.print("   segment has no room for car ");
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Move car from intersection to outgoing segment
+    ///////////////////////////////////////////////////////////////////////
+    private void removeCar (Segment toSegment, Car car) {
+        if (toSegment.addCar(car)) {
+            DebugOutput.print("  "
+                              + car
+                              + " is removed and placed into outgoing segment"
+                              + " having direction "
+                              + Direction.toString(toSegment.getDirection()));
+            if (toSegment.isExit()) {
+                DebugOutput.print("  "
+                                  + car
+                                  + " leaves the grid");
+            }
+        }
+        else {
+            DebugOutput.print("  "
+                              + car
+                              + " cannot be removed and placed"
+                              + " into outgoing segment having direction "
+                              + Direction.toString(toSegment.getDirection()));
+            DebugOutput.print("  segment has no room for car ");
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Remove cars from intersection
+    ///////////////////////////////////////////////////////////////////////
+    private void removeCarsFromIntersection() {
+        for (int i=0; i<this.cars.size(); i++) {
+            Car car = this.cars.get(i);
+            Segment outSegment = this.outSegmentsForCars.get(i);
+            
+            DebugOutput.print("  "
+                              + car
+                              + " is in intersection heading/turning "
+                              + Direction.toString(outSegment.getDirection()));
+            
+            if (car.traversed()) {
+                this.removeCar(outSegment, car);
+                this.cars.remove(i);
+                this.outSegmentsForCars.remove(i);
+            }
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Is car in intersection?
+    ///////////////////////////////////////////////////////////////////////
+    private boolean isCarInIntersection() {
+        return !(this.cars.isEmpty());
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// String representation of intersection
+    ///////////////////////////////////////////////////////////////////////
+    public String toString() {
+        return "Intersection "
+        + "col: "
+        + this.col
+        + "/"
+        + "row: "
+        + this.row;
+    }
+}
+<UNIX-PROMPT> cat Segment.java
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** Segment
+// *****************************************************************************
+// *****************************************************************************
+
+import java.util.*;
+
+public class Segment extends Object {
+    
+    private int row;
+    private int col;
+    private int direction;
+    private int maxCapacity;
+    private int minTimeToTravelSegment;
+    private boolean isEntrance;
+    private boolean isExit;
+    private LinkedList<Car> queue;
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Segment () {
+        this.maxCapacity = 1;
+        this.minTimeToTravelSegment = 0;
+        this.queue = new LinkedList<Car>();
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Segment (int row, int col, int direction, boolean isEntrance,
+                    boolean isExit, int minTimeToTravelSegment) {
+        this();
+        this.row = row;
+        this.col = col;
+        this.direction = direction;
+        this.isEntrance = isEntrance;
+        this.isExit = isExit;
+        this.minTimeToTravelSegment = minTimeToTravelSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Let car enter segment
+    ///////////////////////////////////////////////////////////////////////
+    public boolean addCar(Car car) {
+        if (this.hasSpace()) {
+            car.moveTo(this.row, this.col, this.direction);
+            car.setTimeToTraverse(this.minTimeToTravelSegment);
+            this.queue.add(car);
+            return true;
+        }
+        DebugOutput.print("   "
+                          + car
+                          + " can not enter "
+                          + this
+                          + " (no space)");
+        return false;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get front most car in segment queue
+    ///////////////////////////////////////////////////////////////////////
+    public Car getFirstCar() {
+        return (Car)this.queue.peek();
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get front most car in segment queue and remove it from queue
+    ///////////////////////////////////////////////////////////////////////
+    public Car removeFirstCar() {
+        return (Car)this.queue.removeFirst();
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Is queue empty?
+    ///////////////////////////////////////////////////////////////////////
+    public boolean isEmpty() {
+        return (this.getFirstCar() == null);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Is car waiting?
+    ///////////////////////////////////////////////////////////////////////
+    public boolean isCarWaiting() {
+        Car car = this.getFirstCar();
+        return (car != null && car.traversed()) ;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Has segment space for additonal car?
+    ///////////////////////////////////////////////////////////////////////
+    public boolean hasSpace() {
+        if (this.isEntrance || this.isExit)
+          return true;
+        return this.queue.size() < this.maxCapacity;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get direction of segment
+    ///////////////////////////////////////////////////////////////////////
+    public int getDirection() {
+        return this.direction;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Is segment an exit segment?
+    ///////////////////////////////////////////////////////////////////////
+    public boolean isExit() {
+        return this.isExit;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// String representation of segment
+    ///////////////////////////////////////////////////////////////////////
+    public String toString() {
+        return "Segment "
+                + "col: "
+                + this.col
+                + "/"
+                + "row: "
+                + this.row
+                + "/"
+                + Direction.toString(this.direction);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// String representation of segment status
+    ///////////////////////////////////////////////////////////////////////
+    public String toStringStatus() {
+        Car firstCar = this.getFirstCar();
+        if (firstCar == null) {
+            return "Segment is empty.";
+        } else {
+            return "Holds " + firstCar.toString();
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Equals method
+    ///////////////////////////////////////////////////////////////////////
+    public boolean equals(int row, int col, int direction) {
+        return this.col == col
+            && this.row == row
+            && this.direction == direction;
+    }
+}
+<UNIX-PROMPT> cat Car.java
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** Car
+// *****************************************************************************
+// *****************************************************************************
+
+import java.util.*;
+
+public class Car extends Object {
+    
+    private boolean marked;
+    private int idNumber;
+    private int row;
+    private int col;
+    private int direction;
+    private int blocksBeforeTurn;
+    private int turnDirection;
+    private int entranceTime;
+    private int exitTime;
+    private int timer;
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Car () {
+        
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Car (int idNumber, boolean marked) {
+        this.idNumber = idNumber;
+        this.marked = marked;
+        this.timer = 0;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Car (int idNumber, boolean marked, int blocksBeforeTurn,
+                int turnDirection) {
+        this(idNumber, marked);
+        this.blocksBeforeTurn = blocksBeforeTurn;
+        this.turnDirection    = turnDirection;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Car (int idNumber, boolean marked, int blocksBeforeTurn,
+                int turnDirection, int row, int col, int direction) {
+        this(idNumber, marked, blocksBeforeTurn, turnDirection);
+        this.row = row;
+        this.col = col;
+        this.direction = direction;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get current row position of car
+    ///////////////////////////////////////////////////////////////////////
+    public int getRow() {
+        return this.row;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get current column position of car
+    ///////////////////////////////////////////////////////////////////////
+    public int getCol() {
+        return this.col;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get current direction the car is heading
+    ///////////////////////////////////////////////////////////////////////
+    public int getDirection() {
+        return this.direction;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Update car after moving to new segment
+    ///////////////////////////////////////////////////////////////////////
+    public void moveTo(int row, int col, int direction) {
+        if (!(this.row == row &&
+              this.col == col &&
+              this.direction == direction)) {
+            
+            this.row = row;
+            this.col = col;
+            this.direction = direction;
+        
+            if (this.blocksBeforeTurn >= 0)
+                this.blocksBeforeTurn--;
+        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get direction the car will be heading in the next block
+    ///////////////////////////////////////////////////////////////////////
+    public int getNextDirection() {
+        if (this.blocksBeforeTurn == 0)
+           return Direction.getDirectionAfterTurn(this.direction,
+                                                  this.turnDirection);
+        return this.direction;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get time left before traversed segment/intersection
+    ///////////////////////////////////////////////////////////////////////
+    public int getTimer() {
+        return this.timer;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Set time to traverse segment/intersection
+    ///////////////////////////////////////////////////////////////////////
+    public void setTimeToTraverse(int timeToTraverse) {
+        this.timer = timeToTraverse;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Did car traverse segment/intersection
+    ///////////////////////////////////////////////////////////////////////
+    public boolean traversed() {
+        return this.timer == 0;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Decrease timer by 1
+    ///////////////////////////////////////////////////////////////////////
+    public void updateTimer() {
+        if (this.timer > 0) {
+            this.timer--;
+        }
+        DebugOutput.print("" + this
+                          + " travels in segment/intersection"
+                          + " in direction "
+                          + Direction.toString(this.direction));
+        DebugOutput.print("  for at least "
+                          + this.timer
+                          + " more time unit(s).");
+                          
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// String representation of car
+    ///////////////////////////////////////////////////////////////////////
+    public String toString() {
+        return "car#" + this.idNumber;
+    }
+
+}
+<UNIX-PROMPT> cat Direction.java
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** Direction
+// *****************************************************************************
+// *****************************************************************************
+
+
+import java.util.*;
+
+public class Direction extends Object {
+
+    public static final int SOUTHWARD  = 0;
+    public static final int EASTWARD   = 1;
+    public static final int NORTHWARD  = 2;
+    public static final int WESTWARD   = 3;
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Direction () {
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Compute direction after turn
+    ///////////////////////////////////////////////////////////////////////
+    public static int getDirectionAfterTurn(int direction, int turn) {
+        if (turn == Turn.NEVER_TURN)
+            return direction;
+        
+        if (turn == Turn.TURN_LEFTWARD) {
+            if (direction == SOUTHWARD)
+                return EASTWARD;
+            if (direction == EASTWARD)
+                return NORTHWARD;
+            if (direction == NORTHWARD)
+                return WESTWARD;
+            if (direction == WESTWARD)
+                return SOUTHWARD;
+        }
+        
+        if (turn == Turn.TURN_RIGHTWARD) {
+            if (direction == SOUTHWARD)
+                return WESTWARD;
+            if (direction == WESTWARD)
+                return NORTHWARD;
+            if (direction == NORTHWARD)
+                return EASTWARD;
+            if (direction == EASTWARD)
+                return SOUTHWARD;
+        }
+        return direction;
+    }
+  
+    ///////////////////////////////////////////////////////////////////////
+    /////// String representation of directions
+    ///////////////////////////////////////////////////////////////////////
+    public static String toString(int direction) {
+        if (direction == SOUTHWARD) {
+            return "SOUTHWARD";
+        }
+        if (direction == EASTWARD) {
+            return "EASTWARD";
+        }
+        if (direction == NORTHWARD) {
+            return "NORTHWARD";
+        }
+        if (direction == WESTWARD) {
+            return "WESTWARD";
+        }
+        return "";
+    }
+}
+
+<UNIX-PROMPT> cat Turn.java
+// Team member's names: Hunter Lambert, Omar Farooq,
+//                      Tyler Barnett, Hans-Peter Hoellwirth
+
+// *****************************************************************************
+// *****************************************************************************
+// **** Turn
+// *****************************************************************************
+// *****************************************************************************
+
+
+import java.util.*;
+
+public class Turn extends Object {
+
+    public static final int NEVER_TURN     = 0;
+    public static final int TURN_RIGHTWARD = 1;
+    public static final int TURN_LEFTWARD  = -1;
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Constructor
+    ///////////////////////////////////////////////////////////////////////
+    public Turn () {
+    }
+  
+    ///////////////////////////////////////////////////////////////////////
+    /////// String representation of turn
+    ///////////////////////////////////////////////////////////////////////
+    public static String toString(int turn) {
+        if (turn == NEVER_TURN) {
+            return "NEVER_TURN";
+        }
+        if (turn == TURN_RIGHTWARD) {
+            return "TURN_RIGHTWARD";
+        }
+        if (turn == TURN_LEFTWARD) {
+            return "TURN_LEFTWARD";
+        }
+        return "";
+    }
+}
+
+<UNIX-PROMPT> cat data1_for_subset9
+filename: data1_for_checking_top_level_logic 
+When checking the top-level logic, the Java input statements should skip the 
+first 17 lines in any file of data, then read a line as the value of 
+numIntersectionsInOneDirection, then skip a line, then read a line as the 
+number of cars to be created, then skip every other line (starting with skipping
+the very next line) until the quantity of input numbers read is exactly
+   6 times the number of cars to be created,
+and then the Java program should no longer read any lines from the data file.
+direction:  SOUTHWARD == 0; EASTWARD == 1; NORTHWARD == 2; WESTWARD == 3
+The following three lines illustrate the somewhat-tricky terminology:
+when a car travels south, the car travels SOUTHWARD
+when an incoming segment of an intersection is aiming SOUTHWARD, the segment 
+  is immediately north of that intersection
+when an outgoing segment of an intersection is aiming SOUTHWARD, the segment
+  is immediately south of that intersection
+turning direction: NEVER_TURN == 0; TURN_RIGHTWARD == 1; TURN_LEFTWARD == -1
+numIntersectionsInOneDirection:
+2
+Minimum time to travel segment:
+5
+Minimum time to change segment:
+2
+number of cars created for the test:
+8
+car number:
+1
+born in the segment that is positioned at col:
+1
+born in the segment that is positioned at row:
+2
+born in the segment that is oriented in direction:
+3
+additional blocks to travel prior to turning (-1 means the car will never turn):
+-1 
+direction the car will turn, when the car turns:
+0
+car number:
+2
+born in the segment that is positioned at col:
+1
+born in the segment that is positioned at row:
+2
+born in the segment that is oriented in direction:
+1
+additional blocks to travel prior to turning (-1 means the car will never turn):
+-1 
+direction the car will turn, when the car turns:
+0
+car number:
+3
+born in the segment that is positioned at col:
+1
+born in the segment that is positioned at row:
+2
+born in the segment that is oriented in direction:
+2
+additional blocks to travel prior to turning (-1 means the car will never turn):
+0 
+direction the car will turn, when the car turns:
+0
+car number:
+4
+born in the segment that is positioned at col:
+1
+born in the segment that is positioned at row:
+1
+born in the segment that is oriented in direction:
+1
+additional blocks to travel prior to turning (-1 means the car will never turn):
+1 
+direction the car will turn, when the car turns:
+0
+car number:
+5
+born in the segment that is positioned at col:
+2
+born in the segment that is positioned at row:
+1
+born in the segment that is oriented in direction:
+2
+additional blocks to travel prior to turning (-1 means the car will never turn):
+1 
+direction the car will turn, when the car turns:
+0
+car number:
+6
+born in the segment that is positioned at col:
+2
+born in the segment that is positioned at row:
+1
+born in the segment that is oriented in direction:
+0
+additional blocks to travel prior to turning (-1 means the car will never turn):
+0 
+direction the car will turn, when the car turns:
+0
+car number:
+7
+born in the segment that is positioned at col:
+1
+born in the segment that is positioned at row:
+1
+born in the segment that is oriented in direction:
+1
+additional blocks to travel prior to turning (-1 means the car will never turn):
+1
+direction the car will turn, when the car turns:
+0
+car number:
+8
+born in the segment that is positioned at col:
+2
+born in the segment that is positioned at row:
+0
+born in the segment that is oriented in direction:
+0
+additional blocks to travel prior to turning (-1 means the car will never turn):
+1
+direction the car will turn, when the car turns:
+0
+NOTE: Starting at the current line, no lines should be read by the program.
+Here's a picture of the grid, with the car numbers to the right of (or
+above) the segment the car is "born" into, where i[col, row] denotes
+an instance of Intersection::
+
+              |    ^             |1   ^
+              v    |             v    |
+                           2
+         <-               <-                 <-
+row 2:        i[1,2]             i[2,2]
+   
+         ->               ->                 ->
+   
+              |    ^             |6   ^
+              v    |3            v    | 
+   
+         <-               <-                 <-
+row 1:        i[1,1]             i[2,1]
+         4
+         ->               ->                 ->
+              |    ^             |    ^
+              v    |             v    |5
+
+col:             1                  2
+
+
+The desired debug-output should be *exactly* as follows (except
+for the pictures of the grid):
+
+The purpose of the tester program is simply to help ensure the following
+actions are carried out successfully (to help ensure that just the top-level
+logic being tested tends to "work" successfully):
+  - an intersection can check each of its 4 incoming segments to
+       see if the segment at least contains a car
+  - an intersection can remove a car from any of its 4 incoming segments,
+       and can determine from that car whether the car has 0 blocks
+       to go before the car turns 
+  - whenever an intersection learns that a car at one of its incoming
+       segments has 0 blocks to go before turning, the intersection can 
+       remove the car from the car's current segment and place the
+       car in the appropriate one of the 4 outgoing segments from the 
+       intersection
+       (after learning from the car whether the car turns right or
+       turns left)
+  - whenever an intersection learns that a car at one of its incoming
+       segments has more than 0 blocks to go before turning, the intersection 
+       can remove the car from the car's current segment and place the
+       car in the appropriate one of the 4 outgoing segments from the 
+       intersection, and also the car's instance variable (that indicates
+       how many blocks is has to go before turning) will be decremented
+  - whenever an intersection learns that a car at one of its incoming
+       segments is not to turn at that intersection, the intersection can
+       remove the car from the car's current segment and place the
+       car in the appropriate one of the 4 outgoing segments from the 
+       intersection.
+  - when a car moves to an outgoing segment that causes the car to
+       leave the grid, the intersection having that outgoing segment can 
+       determine that fact
+  - when a car moves to an outgoing segment that doesn't cause the car to
+       leave the grid, another intersection will be able to notice that the 
+       car is in one of its incoming segments.
+For simplicity (and since only the top-level logic is being tested),
+here are some of the eventually-specified things not tested:
+  - a car must remain in a segment for a certain length of time
+  - a car can never move through an intersection within the same time-step
+      that the car begins to move through the intersection
+  - a segment has a maximum capacity of cars.
+
+When the tester program makes exactly one visit to each intersection within
+the grid, the output of the tester program should be *exactly* as follows,
+including the indicated blank lines (starting with the very next line)::
+
+The intersection at col 1 and row 1 reports
+  incoming segment having direction SOUTHWARD is empty
+  incoming segment having direction EASTWARD is nonempty
+   car#4 is removed and placed into outgoing segment having direction EASTWARD
+  incoming segment having direction NORTHWARD is empty
+  incoming segment having direction WESTWARD is empty 
+  outgoing segment having direction SOUTHWARD is empty
+  outgoing segment having direction EASTWARD is nonempty
+  outgoing segment having direction NORTHWARD is nonempty
+  outgoing segment having direction WESTWARD is empty
+
+              |    ^             |1   ^
+              v    |             v    |
+                           2
+         <-               <-                 <-
+row 2:        i[1,2]             i[2,2]
+   
+         ->               ->                 ->
+   
+              |    ^             |6   ^
+              v    |3            v    | 
+   
+         <-               <-                 <-
+row 1:        i[1,1]             i[2,1]
+                          4 
+         ->               ->                 ->
+              |    ^             |    ^
+              v    |             v    |5
+
+col:             1                  2
+
+The intersection at col 2 and row 1 reports
+  incoming segment having direction SOUTHWARD is nonempty and
+   car#6 is removed and placed into outgoing segment having direction EASTWARD
+   car#6 leaves the grid
+  incoming segment having direction EASTWARD is nonempty and
+   car#4 is removed and placed into outgoing segment having direction SOUTHWARD
+   car#4 leaves the grid
+  incoming segment having direction NORTHWARD is nonempty and
+   car#5 is removed and placed into outgoing segment having direction NORTHWARD
+  incoming segment having direction WESTWARD is empty 
+  outgoing segment having direction SOUTHWARD is nonempty
+  outgoing segment having direction EASTWARD is nonempty
+  outgoing segment having direction NORTHWARD is nonempty
+  outgoing segment having direction WESTWARD is empty
+
+              |    ^             |1   ^
+              v    |             v    |
+                           2
+         <-               <-                 <-
+row 2:        i[1,2]             i[2,2]
+   
+         ->               ->                 ->
+   
+              |    ^             |    ^
+              v    |3            v    |5 
+   
+         <-               <-                 <-
+row 1:        i[1,1]             i[2,1]
+                                             6 
+         ->               ->                 ->
+              |    ^             |4   ^
+              v    |             v    |
+
+col:             1                  2
+
+The intersection at col 1 and row 2 reports
+  incoming segment having direction SOUTHWARD is empty 
+  incoming segment having direction EASTWARD is empty 
+  incoming segment having direction NORTHWARD is nonempty and
+   car#3 is removed and placed into outgoing segment having direction EASTWARD
+  incoming segment having direction WESTWARD is nonempty and
+   car#2 is removed and placed into outgoing segment having direction WESTWARD
+   car#2 leaves the grid
+  outgoing segment having direction SOUTHWARD is empty
+  outgoing segment having direction EASTWARD is nonempty
+  outgoing segment having direction NORTHWARD is empty
+  outgoing segment having direction WESTWARD is nonempty
+
+              |    ^             |1   ^
+              v    |             v    |
+          2                 
+         <-               <-                 <-
+row 2:        i[1,2]             i[2,2]
+                          3 
+         ->               ->                 ->
+   
+              |    ^             |    ^
+              v    |3            v    |5
+   
+         <-               <-                 <-
+row 1:        i[1,1]             i[2,1]
+                                             6
+         ->               ->                 ->
+              |    ^             |4   ^
+              v    |             v    | 
+
+col:             1                  2
+
+The intersection at col 2 and row 2 reports
+  incoming segment having direction SOUTHWARD is nonempty and
+   car#1 is removed and placed into outgoing segment having direction SOUTHWARD
+  incoming segment having direction EASTWARD is nonempty and
+   car#3 is removed and placed into outgoing segment having direction EASTWARD
+   car#3 leaves the grid
+  incoming segment having direction NORTHWARD is nonempty and
+   car#5 is removed and placed into outgoing segment having direction WESTWARD
+  incoming segment having direction WESTWARD is empty
+  outgoing segment having direction SOUTHWARD is nonempty
+  outgoing segment having direction EASTWARD is nonempty
+  outgoing segment having direction NORTHWARD is empty
+  outgoing segment having direction WESTWARD is nonempty
+
+              |    ^             |    ^
+              v    |             v    |
+                           5
+         <-               <-                 <-
+row 2:        i[1,2]             i[2,2]
+                                             3 
+         ->               ->                 ->
+   
+              |    ^             |1   ^
+              v    |             v    | 
+   
+         <-               <-                 <-
+row 1:        i[1,1]             i[2,1]
+                                             6
+         ->               ->                 ->
+              |    ^             |4   ^
+              v    |             v    | 
+
+col:             1                  2
+
+
+<UNIX-PROMPT> rm *class
+<UNIX-PROMPT> javac Test_TrafficModel.java
+<UNIX-PROMPT> javac TrafficModel.java
+<UNIX-PROMPT> javac Intersection.java
+<UNIX-PROMPT> javac Segment.java
+<UNIX-PROMPT> javac Car.java
+<UNIX-PROMPT> javac Direction.java
+<UNIX-PROMPT> javac Turn.java
+<UNIX-PROMPT> java Test_TrafficModel < data1_for_subset9
+DEBUG Number of intersections in one direction: 2
+DEBUG Minimum time to travel segment: 5
+DEBUG Minimum time to change segment: 2
+DEBUG Number of cars created for the test: 8
+DEBUG Car number: 1
+DEBUG born in the segment that is positioned at col: 1
+DEBUG born in the segment that is positioned at row: 2
+DEBUG born in the segment that is oriented in direction: 3
+DEBUG additional blocks to travel prior to turning -1
+DEBUG direction the car will turn, when the car turns: 0
+DEBUG Car number: 2
+DEBUG born in the segment that is positioned at col: 1
+DEBUG born in the segment that is positioned at row: 2
+DEBUG born in the segment that is oriented in direction: 1
+DEBUG additional blocks to travel prior to turning -1
+DEBUG direction the car will turn, when the car turns: 0
+DEBUG Car number: 3
+DEBUG born in the segment that is positioned at col: 1
+DEBUG born in the segment that is positioned at row: 2
+DEBUG born in the segment that is oriented in direction: 2
+DEBUG additional blocks to travel prior to turning 0
+DEBUG direction the car will turn, when the car turns: 0
+DEBUG Car number: 4
+DEBUG born in the segment that is positioned at col: 1
+DEBUG born in the segment that is positioned at row: 1
+DEBUG born in the segment that is oriented in direction: 1
+DEBUG additional blocks to travel prior to turning 1
+DEBUG direction the car will turn, when the car turns: 0
+DEBUG Car number: 5
+DEBUG born in the segment that is positioned at col: 2
+DEBUG born in the segment that is positioned at row: 1
+DEBUG born in the segment that is oriented in direction: 2
+DEBUG additional blocks to travel prior to turning 1
+DEBUG direction the car will turn, when the car turns: 0
+DEBUG Car number: 6
+DEBUG born in the segment that is positioned at col: 2
+DEBUG born in the segment that is positioned at row: 1
+DEBUG born in the segment that is oriented in direction: 0
+DEBUG additional blocks to travel prior to turning 0
+DEBUG direction the car will turn, when the car turns: 0
+DEBUG Car number: 7
+DEBUG born in the segment that is positioned at col: 1
+DEBUG born in the segment that is positioned at row: 1
+DEBUG born in the segment that is oriented in direction: 1
+DEBUG additional blocks to travel prior to turning 1
+DEBUG direction the car will turn, when the car turns: 0
+DEBUG Car number: 8
+DEBUG born in the segment that is positioned at col: 2
+DEBUG born in the segment that is positioned at row: 0
+DEBUG born in the segment that is oriented in direction: 0
+DEBUG additional blocks to travel prior to turning 1
+DEBUG direction the car will turn, when the car turns: 0
+DEBUG TIME: 1
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#4 is closest to the intersection (4 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is nonempty and
+DEBUG    car#6 is closest to the intersection (4 time unit(s) to go)
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#5 is closest to the intersection (4 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (4 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#3 is closest to the intersection (4 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is nonempty and
+DEBUG    car#1 is closest to the intersection (4 time unit(s) to go)
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 2
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#4 is closest to the intersection (3 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is nonempty and
+DEBUG    car#6 is closest to the intersection (3 time unit(s) to go)
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#5 is closest to the intersection (3 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (3 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#3 is closest to the intersection (3 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is nonempty and
+DEBUG    car#1 is closest to the intersection (3 time unit(s) to go)
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 3
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#4 is closest to the intersection (2 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is nonempty and
+DEBUG    car#6 is closest to the intersection (2 time unit(s) to go)
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#5 is closest to the intersection (2 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (2 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#3 is closest to the intersection (2 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is nonempty and
+DEBUG    car#1 is closest to the intersection (2 time unit(s) to go)
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 4
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#4 is closest to the intersection (1 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is nonempty and
+DEBUG    car#6 is closest to the intersection (1 time unit(s) to go)
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#5 is closest to the intersection (1 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (1 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#3 is closest to the intersection (1 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is nonempty and
+DEBUG    car#1 is closest to the intersection (1 time unit(s) to go)
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 5
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#4 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#4 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is nonempty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is nonempty and
+DEBUG    car#6 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#6 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#2 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is nonempty
+DEBUG TIME: 6
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   car#4 is in intersection heading/turning EASTWARD
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   car#6 is in intersection heading/turning SOUTHWARD
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   car#2 is in intersection heading/turning EASTWARD
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is nonempty
+DEBUG TIME: 7
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   car#4 is in intersection heading/turning EASTWARD
+DEBUG   car#4 is removed and placed into outgoing segment having direction EASTWARD
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#7 cannot be removed and placed into outgoing segment having direction EASTWARD
+DEBUG    segment has no room for car 
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is nonempty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   car#6 is in intersection heading/turning SOUTHWARD
+DEBUG   car#6 is removed and placed into outgoing segment having direction SOUTHWARD
+DEBUG   car#6 leaves the grid
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#4 is closest to the intersection (5 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#5 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#5 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   car#2 is in intersection heading/turning EASTWARD
+DEBUG   car#2 is removed and placed into outgoing segment having direction EASTWARD
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#3 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#3 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (5 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is nonempty
+DEBUG TIME: 8
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#7 cannot be removed and placed into outgoing segment having direction EASTWARD
+DEBUG    segment has no room for car 
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   car#5 is in intersection heading/turning NORTHWARD
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   car#3 is in intersection heading/turning NORTHWARD
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (4 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is nonempty
+DEBUG TIME: 9
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#7 cannot be removed and placed into outgoing segment having direction EASTWARD
+DEBUG    segment has no room for car 
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   car#5 is in intersection heading/turning NORTHWARD
+DEBUG   car#5 is removed and placed into outgoing segment having direction NORTHWARD
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#4 is closest to the intersection (3 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   car#3 is in intersection heading/turning NORTHWARD
+DEBUG   car#3 is removed and placed into outgoing segment having direction NORTHWARD
+DEBUG   car#3 leaves the grid
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is nonempty and
+DEBUG    car#1 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#1 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (3 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#5 is closest to the intersection (5 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 10
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#7 cannot be removed and placed into outgoing segment having direction EASTWARD
+DEBUG    segment has no room for car 
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#4 is closest to the intersection (2 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   car#1 is in intersection heading/turning WESTWARD
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (2 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#5 is closest to the intersection (4 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 11
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#7 cannot be removed and placed into outgoing segment having direction EASTWARD
+DEBUG    segment has no room for car 
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#4 is closest to the intersection (1 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   car#1 is in intersection heading/turning WESTWARD
+DEBUG   car#1 is removed and placed into outgoing segment having direction WESTWARD
+DEBUG   car#1 leaves the grid
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (1 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#5 is closest to the intersection (3 time unit(s) to go)
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 12
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#7 cannot be removed and placed into outgoing segment having direction EASTWARD
+DEBUG    segment has no room for car 
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is nonempty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#4 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#4 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is nonempty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#2 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#2 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 13
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#7 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   car#4 is in intersection heading/turning EASTWARD
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   car#2 is in intersection heading/turning EASTWARD
+DEBUG TIME: 14
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   car#7 is in intersection heading/turning EASTWARD
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   car#4 is in intersection heading/turning EASTWARD
+DEBUG   car#4 is removed and placed into outgoing segment having direction EASTWARD
+DEBUG   car#4 leaves the grid
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is nonempty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is nonempty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   car#2 is in intersection heading/turning EASTWARD
+DEBUG   car#2 is removed and placed into outgoing segment having direction EASTWARD
+DEBUG   car#2 leaves the grid
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is nonempty and
+DEBUG    car#5 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#5 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 15
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   car#7 is in intersection heading/turning EASTWARD
+DEBUG   car#7 is removed and placed into outgoing segment having direction EASTWARD
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (5 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is nonempty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   car#5 is in intersection heading/turning NORTHWARD
+DEBUG TIME: 16
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (4 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is nonempty
+DEBUG   outgoing segment having direction WESTWARD is nonempty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   car#5 is in intersection heading/turning NORTHWARD
+DEBUG   car#5 is removed and placed into outgoing segment having direction NORTHWARD
+DEBUG   car#5 leaves the grid
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 17
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 4 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (3 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is nonempty
+DEBUG   outgoing segment having direction WESTWARD is nonempty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 18
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 3 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (2 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is nonempty
+DEBUG   outgoing segment having direction WESTWARD is nonempty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 19
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 2 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (1 time unit(s) to go)
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is nonempty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is nonempty
+DEBUG   outgoing segment having direction WESTWARD is nonempty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is nonempty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG TIME: 20
+DEBUG car#1 travels in segment/intersection in direction WESTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#2 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#3 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#4 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#5 travels in segment/intersection in direction NORTHWARD
+DEBUG   for at least 1 more time unit(s).
+DEBUG car#6 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#7 travels in segment/intersection in direction EASTWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG car#8 travels in segment/intersection in direction SOUTHWARD
+DEBUG   for at least 0 more time unit(s).
+DEBUG The intersection at col 1 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is nonempty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 2 and row 1 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is nonempty and
+DEBUG    car#7 is closest to the intersection (0 time unit(s) to go)
+DEBUG    car#7 is removed and placed into intersection
+DEBUG   outgoing segment having direction SOUTHWARD is nonempty
+DEBUG   outgoing segment having direction EASTWARD is nonempty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+DEBUG The intersection at col 1 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is empty
+DEBUG   outgoing segment having direction NORTHWARD is nonempty
+DEBUG   outgoing segment having direction WESTWARD is nonempty
+DEBUG The intersection at col 2 and row 2 reports
+DEBUG   incoming segment having direction SOUTHWARD is empty
+DEBUG   incoming segment having direction EASTWARD is empty
+DEBUG   incoming segment having direction NORTHWARD is empty
+DEBUG   incoming segment having direction WESTWARD is empty
+DEBUG   outgoing segment having direction SOUTHWARD is empty
+DEBUG   outgoing segment having direction EASTWARD is nonempty
+DEBUG   outgoing segment having direction NORTHWARD is empty
+DEBUG   outgoing segment having direction WESTWARD is empty
+bash-3.2$ exit
+exit
+
+Script done on Mon Apr  6 09:45:33 2015
