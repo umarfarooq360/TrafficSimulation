@@ -13,7 +13,7 @@ traffic lights. The simulation feeds the city roads with cars randomly and deter
 median time it takes for cars to go through the grid. See the requirements document for more details.
 
 ### Authors
--Omar Farooq
--Hunter Lambert
--Tyler Barnett
--Hans­Peter Hoellwirth
+- Omar Farooq
+- Hunter Lambert
+- Tyler Barnett
+- Hans­Peter Hoellwirth
