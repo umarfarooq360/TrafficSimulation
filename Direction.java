@@ -23,4 +23,24 @@ public class Direction extends Object {
     public Direction () {
         
     }
+  
+    ///////////////////////////////////////////////////////////////////////
+    /////// String representation of directions
+    ///////////////////////////////////////////////////////////////////////
+    public static String toString(int direction) {
+        if (direction == SOUTHWARD) {
+            return "SOUTHWARD";
+        }
+        if (direction == EASTWARD) {
+            return "EASTWARD";
+        }
+        if (direction == NORTHWARD) {
+            return "NORTHWARD";
+        }
+        if (direction == WESTWARD) {
+            return "WESTWARD";
+        }
+        return "";
+    }
 }
+

@@ -37,10 +37,21 @@ public class Segment extends Object {
     ///////////////////////////////////////////////////////////////////////
     public String toString() {
         return "Segment "
+                + "col: "
                 + this.col
                 + "/"
+                + "row: "
                 + this.row
                 + "/"
-                + this.direction;
+                + Direction.toString(this.direction);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Equals method
+    ///////////////////////////////////////////////////////////////////////
+    public boolean equals(int col, int row, int direction) {
+        return this.col == col
+            && this.row == row
+            && this.direction == direction;
     }
 }
