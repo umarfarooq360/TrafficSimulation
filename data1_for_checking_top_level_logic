@@ -14,5 +14,5 @@ when an incoming segment of an intersection is aiming SOUTHWARD, the segment
 when an outgoing segment of an intersection is aiming SOUTHWARD, the segment
   is immediately south of that intersection
 turning direction: NEVER_TURN == 0; TURN_RIGHTWARD == 1; TURN_LEFTWARD == -1
-number of cars created for the test:
-6
+number of intersections in one direction:
+2

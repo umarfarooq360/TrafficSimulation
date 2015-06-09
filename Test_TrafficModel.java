@@ -22,10 +22,12 @@ public class Test_TrafficModel extends Object {
             input.nextLine();
         }
         
-        int numOfCars = input.nextInt();
-        DebugOutput.print("The number of cars to create: " + numOfCars);
+        int numberOfIntersectionsInOneDirection = input.nextInt();
+        DebugOutput.print("Number of intersections in one direction: "
+                          + numberOfIntersectionsInOneDirection);
         
-        TrafficModel model = new TrafficModel(numOfCars);
+        TrafficModel model
+                = new TrafficModel(numberOfIntersectionsInOneDirection);
         model.doTest();
     }
 

@@ -12,36 +12,42 @@ import java.util.*;
 
 public class TrafficModel extends Object {
 
-    private ArrayList<Car> cars;
-    private int numOfCars;
+    private Intersection intersections[][];
+    private int numIntersectionsInOneDirection;
 
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
     public TrafficModel () {
-        this.cars = new ArrayList<Car>();
-        this.numOfCars = 0;
+        this.numIntersectionsInOneDirection = 0;
     }
     
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
-    public TrafficModel (int numOfCars) {
-        this();
-        this.numOfCars = numOfCars;
+    public TrafficModel (int numIntersectionsInOneDirection) {
+        this.numIntersectionsInOneDirection = numIntersectionsInOneDirection;
+        this.intersections = new Intersection[numIntersectionsInOneDirection]
+                                            [numIntersectionsInOneDirection];
     }
 
     ///////////////////////////////////////////////////////////////////////
-    /////// Run simulation
+    /////// Do test
     ///////////////////////////////////////////////////////////////////////
     public void doTest() {
         
-        for (int i=0; i < numOfCars; i++) {
-            this.cars.add(i, new Car(i+1, false, 1, 0, Direction.NORTHWARD));
+        for (int row=0; row < numIntersectionsInOneDirection; row++) {
+            for (int col=0; col < numIntersectionsInOneDirection; col++) {
+                this.intersections[row][col]
+                    = new Intersection(row + 1, col + 1);
+            }
+            
         }
         
-        for (int i=0; i < this.cars.size(); i++) {
-            DebugOutput.print("" + this.cars.get(i));
+        for (int row=0; row < numIntersectionsInOneDirection; row++) {
+            for (int col=0; col < numIntersectionsInOneDirection; col++) {
+                this.intersections[row][col].doUnitOfWork();
+            }
         }
     }
 }
