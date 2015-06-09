@@ -121,6 +121,27 @@ public class Intersection extends Object {
         this.processIncomingSegment(this.inEastSegment);
         this.processIncomingSegment(this.inNorthSegment);
         this.processIncomingSegment(this.inWestSegment);
+        
+        this.processOutgoingSegment(this.outSouthSegment);
+        this.processOutgoingSegment(this.outEastSegment);
+        this.processOutgoingSegment(this.outNorthSegment);
+        this.processOutgoingSegment(this.outWestSegment);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Process outgoing segment
+    ///////////////////////////////////////////////////////////////////////
+    private void processOutgoingSegment(Segment segment) {
+        if (segment.isCarWaiting()) {
+            DebugOutput.print("  outgoing segment having direction "
+                              + Direction.toString(segment.getDirection())
+                              + " is nonempty");
+        }
+        else {
+            DebugOutput.print("  outgoing segment having direction "
+                              + Direction.toString(segment.getDirection())
+                              + " is empty");
+        }
     }
     
     ///////////////////////////////////////////////////////////////////////
@@ -132,22 +153,17 @@ public class Intersection extends Object {
                               + Direction.toString(segment.getDirection())
                               + " is nonempty and");
             
-            Car car = segment.processFirstCar();
+            Car car = segment.getFirstCar();
             int nextDirection = car.getNextDirection();
-            DebugOutput.print("   "
-                              + car
-                              + " is removed and placed into outgoing segment"
-                              + " having direction "
-                              + Direction.toString(nextDirection));
             
             if (nextDirection == Direction.SOUTHWARD)
-                this.outSouthSegment.addCar(car);
+                this.moveCar(segment, this.outSouthSegment, car);
             if (nextDirection == Direction.EASTWARD)
-                this.outEastSegment.addCar(car);
+                this.moveCar(segment, this.outEastSegment, car);
             if (nextDirection == Direction.NORTHWARD)
-                this.outNorthSegment.addCar(car);
+                this.moveCar(segment, this.outNorthSegment, car);
             if (nextDirection == Direction.WESTWARD)
-                this.outWestSegment.addCar(car);
+                this.moveCar(segment, this.outWestSegment, car);
         }
         else {
             DebugOutput.print("  incoming segment having direction "
@@ -155,7 +171,34 @@ public class Intersection extends Object {
                               + " is empty");
         }
     }
-    
+        
+    ///////////////////////////////////////////////////////////////////////
+    /////// Move car from incoming to outgoing segment
+    ///////////////////////////////////////////////////////////////////////
+    public void moveCar (Segment fromSegment, Segment toSegment, Car car) {
+        if (toSegment.addCar(car)) {
+            fromSegment.removeFirstCar();
+            DebugOutput.print("   "
+                              + car
+                              + " is removed and placed into outgoing segment"
+                              + " having direction "
+                              + Direction.toString(toSegment.getDirection()));
+            if (toSegment.isExit()) {
+                DebugOutput.print("   "
+                                  + car
+                                  + " leaves the grid");
+            }
+        }
+        else {
+            DebugOutput.print("   "
+                              + car
+                              + " cannot be removed and placed"
+                              + " into outgoing segment having direction "
+                              + Direction.toString(toSegment.getDirection()));
+            DebugOutput.print("   segment has no room for car ");
+        }
+    }
+        
     ///////////////////////////////////////////////////////////////////////
     /////// String representation of intersection
     ///////////////////////////////////////////////////////////////////////

@@ -64,7 +64,12 @@ public class TrafficModel extends Object {
     /////// Create and print new segment
     ///////////////////////////////////////////////////////////////////////
     private void createSegment(int row, int col, int direction) {
-        Segment segment = new Segment(row, col, direction);
+        boolean isExit = row == 0
+                        || col == 0
+                        || row == (numIntersectionsInOneDirection + 1)
+                        || col == (numIntersectionsInOneDirection + 1);
+        
+        Segment segment = new Segment(row, col, direction, isExit);
         segments.add(segment);
     }
     

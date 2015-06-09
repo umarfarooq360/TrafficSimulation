@@ -15,6 +15,7 @@ public class Segment extends Object {
     private int col;
     private int direction;
     private int maxCapacity;
+    private boolean isExit;
     private LinkedList<Car> queue;
 
     ///////////////////////////////////////////////////////////////////////
@@ -28,19 +29,24 @@ public class Segment extends Object {
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
-    public Segment (int row, int col, int direction) {
+    public Segment (int row, int col, int direction, boolean isExit) {
         this();
         this.row = row;
         this.col = col;
         this.direction = direction;
+        this.isExit = isExit;
     }
     
     ///////////////////////////////////////////////////////////////////////
     /////// Let car enter segment
     ///////////////////////////////////////////////////////////////////////
-    public void addCar(Car car) {
-        car.moveTo(this.row, this.col, this.direction);
-        this.queue.add(car);
+    public boolean addCar(Car car) {
+        if (this.queue.size() < this.maxCapacity) {
+            car.moveTo(this.row, this.col, this.direction);
+            this.queue.add(car);
+            return true;
+        }
+        return false;
     }
     
     ///////////////////////////////////////////////////////////////////////
@@ -53,7 +59,7 @@ public class Segment extends Object {
     ///////////////////////////////////////////////////////////////////////
     /////// Get front most car in segment queue and remove it from queue
     ///////////////////////////////////////////////////////////////////////
-    public Car processFirstCar() {
+    public Car removeFirstCar() {
         return (Car)this.queue.getFirst();
     }
     
@@ -69,6 +75,13 @@ public class Segment extends Object {
     ///////////////////////////////////////////////////////////////////////
     public int getDirection() {
         return this.direction;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Is segment an exit segment?
+    ///////////////////////////////////////////////////////////////////////
+    public boolean isExit() {
+        return this.isExit;
     }
     
     ///////////////////////////////////////////////////////////////////////
