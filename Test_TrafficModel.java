@@ -28,6 +28,18 @@ public class Test_TrafficModel extends Object {
 
         input.nextLine();
         input.nextLine();
+        int minTimeToTravelSegment = input.nextInt();
+        DebugOutput.print("Minimum time to travel segment: "
+                          + minTimeToTravelSegment);
+ 
+        input.nextLine();
+        input.nextLine();
+        int minTimeToChangeSegment = input.nextInt();
+        DebugOutput.print("Minimum time to change segment: "
+                          + minTimeToChangeSegment);
+        
+        input.nextLine();
+        input.nextLine();
         int numberOfCars = input.nextInt();
         DebugOutput.print("Number of cars created for the test: "
                           + numberOfCars);
@@ -74,7 +86,9 @@ public class Test_TrafficModel extends Object {
         }
         
         TrafficModel model
-                = new TrafficModel(numberOfIntersectionsInOneDirection, cars);
+                = new TrafficModel(numberOfIntersectionsInOneDirection,
+                                   minTimeToTravelSegment,
+                                   minTimeToChangeSegment, cars);
         model.doTest();
     }
 

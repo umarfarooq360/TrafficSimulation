@@ -4,6 +4,13 @@
 // *****************************************************************************
 // *****************************************************************************
 // **** TrafficModel
+//
+// Subset 8 comments:
+// - car tracks the time to go before reaching the intersection rather than the
+//   number of time units already spent in the segment/intersection
+// - allows already for turns in intersection
+// - allows for multiple cars in intersection
+//
 // *****************************************************************************
 // *****************************************************************************
 
@@ -16,20 +23,32 @@ public class TrafficModel extends Object {
     private ArrayList<Segment> segments;
     private ArrayList<Car> cars;
     private int numIntersectionsInOneDirection;
+    private int minTimeToTravelSegment;
+    private int minTimeToChangeSegment;
+    private int simulationLength;
 
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
     public TrafficModel () {
         this.numIntersectionsInOneDirection = 0;
+        this.minTimeToTravelSegment = 0;
+        this.minTimeToChangeSegment = 0;
+        this.simulationLength = 20;
         this.cars = new ArrayList<Car>();
     }
     
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
-    public TrafficModel (int numIntersectionsInOneDirection) {
+    public TrafficModel (int numIntersectionsInOneDirection,
+                         int minTimeToTravelSegment,
+                         int minTimeToChangeSegment) {
+        this();
         this.numIntersectionsInOneDirection = numIntersectionsInOneDirection;
+        this.minTimeToTravelSegment = minTimeToTravelSegment;
+        this.minTimeToChangeSegment = minTimeToChangeSegment;
+        
         this.intersections = new Intersection[numIntersectionsInOneDirection]
                                             [numIntersectionsInOneDirection];
         this.segments = new ArrayList<Segment>();
@@ -40,8 +59,12 @@ public class TrafficModel extends Object {
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
     public TrafficModel (int numIntersectionsInOneDirection,
+                         int minTimeToTravelSegment,
+                         int minTimeToChangeSegment,
                          ArrayList<Car> cars) {
-        this(numIntersectionsInOneDirection);
+        this(numIntersectionsInOneDirection,
+             minTimeToTravelSegment,
+             minTimeToChangeSegment);
         this.cars = cars;
     }
 
@@ -52,10 +75,19 @@ public class TrafficModel extends Object {
         this.createSegments();
         this.createIntersections();
         this.createCars();
+        
+        for (int time=1; time <= this.simulationLength; time++)
+        {
+            DebugOutput.print("TIME: " + time);
+            
+            for (int i=0; i < this.cars.size(); i++) {
+                this.cars.get(i).updateTimer();
+            }
 
-        for (int row=0; row < numIntersectionsInOneDirection; row++) {
-            for (int col=0; col < numIntersectionsInOneDirection; col++) {
-                this.intersections[row][col].doUnitOfWork();
+            for (int row=0; row < numIntersectionsInOneDirection; row++) {
+                for (int col=0; col < numIntersectionsInOneDirection; col++) {
+                    this.intersections[row][col].doUnitOfWork();
+                }
             }
         }
     }
@@ -69,7 +101,8 @@ public class TrafficModel extends Object {
                         || row == (numIntersectionsInOneDirection + 1)
                         || col == (numIntersectionsInOneDirection + 1);
         
-        Segment segment = new Segment(row, col, direction, isExit);
+        Segment segment = new Segment(row, col, direction, isExit,
+                                      this.minTimeToTravelSegment);
         segments.add(segment);
     }
     
@@ -136,7 +169,7 @@ public class TrafficModel extends Object {
                 segments[7] = this.findSegment(r, c - 1, Direction.WESTWARD);
                 
                 this.intersections[row][col]
-                = new Intersection(r, c, segments);
+                = new Intersection(r, c, this.minTimeToChangeSegment, segments);
             }
             
         }

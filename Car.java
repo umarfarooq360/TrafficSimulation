@@ -20,6 +20,7 @@ public class Car extends Object {
     private int turnDirection;
     private int entranceTime;
     private int exitTime;
+    private int timer;
 
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
@@ -34,6 +35,7 @@ public class Car extends Object {
     public Car (int idNumber, boolean marked) {
         this.idNumber = idNumber;
         this.marked = marked;
+        this.timer = 0;
     }
     
     ///////////////////////////////////////////////////////////////////////
@@ -103,6 +105,44 @@ public class Car extends Object {
            return Direction.getDirectionAfterTurn(this.direction,
                                                   this.turnDirection);
         return this.direction;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get time left before traversed segment/intersection
+    ///////////////////////////////////////////////////////////////////////
+    public int getTimer() {
+        return this.timer;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Set time to traverse segment/intersection
+    ///////////////////////////////////////////////////////////////////////
+    public void setTimeToTraverse(int timeToTraverse) {
+        this.timer = timeToTraverse;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Did car traverse segment/intersection
+    ///////////////////////////////////////////////////////////////////////
+    public boolean traversed() {
+        return this.timer == 0;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Decrease timer by 1
+    ///////////////////////////////////////////////////////////////////////
+    public void updateTimer() {
+        if (this.timer > 0) {
+            this.timer--;
+        }
+        DebugOutput.print("" + this
+                          + " travels in segment/intersection"
+                          + " in direction "
+                          + Direction.toString(this.direction));
+        DebugOutput.print("  for at least "
+                          + this.timer
+                          + " more time unit(s).");
+                          
     }
 
     ///////////////////////////////////////////////////////////////////////
