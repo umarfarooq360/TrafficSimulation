@@ -157,19 +157,19 @@ public class Intersection extends Object {
     /////// Should request traffic light status change?
     ///////////////////////////////////////////////////////////////////////
     private boolean shouldRequestTrafficLightSwitch() {
-        if (this.inSouthSegment.isCarWaiting() &&
+        if (this.inSouthSegment.isCarWaitingForGreen() &&
             this.trafficLight.getStatus() == LightSignal.GREEN_EW) {
             return true;
         }
-        if (this.inEastSegment.isCarWaiting() &&
+        if (this.inEastSegment.isCarWaitingForGreen() &&
             this.trafficLight.getStatus() == LightSignal.GREEN_NS) {
             return true;
         }
-        if (this.inNorthSegment.isCarWaiting() &&
+        if (this.inNorthSegment.isCarWaitingForGreen() &&
             this.trafficLight.getStatus() == LightSignal.GREEN_EW) {
             return true;
         }
-        if (this.inWestSegment.isCarWaiting() &&
+        if (this.inWestSegment.isCarWaitingForGreen() &&
             this.trafficLight.getStatus() == LightSignal.GREEN_NS) {
             return true;
         }
@@ -197,26 +197,25 @@ public class Intersection extends Object {
                 if (segment.isCarWaiting()) {
                     if (this.trafficLight.
                         isGreenInDirection(segment.getDirection())) {
-                        int nextDirection = car.getNextDirection();
-            
-                        if (nextDirection == Direction.SOUTHWARD)
-                            this.putCarInIntersection(segment,
-                                                      this.outSouthSegment,
-                                                      car);
-                        if (nextDirection == Direction.EASTWARD)
-                            this.putCarInIntersection(segment,
-                                                      this.outEastSegment,
-                                                      car);
-                        if (nextDirection == Direction.NORTHWARD)
-                            this.putCarInIntersection(segment,
-                                                      this.outNorthSegment,
-                                                      car);
-                        if (nextDirection == Direction.WESTWARD)
-                            this.putCarInIntersection(segment,
-                                                      this.outWestSegment,
-                                                      car);
+                        DebugOutput.print("   "
+                                          + car
+                                          + " wants to enter intersection"
+                                          + " at green traffic light");
+                        this.putCarInIntersection(segment, car);
+                        
+                    } else if (this.trafficLight.isGreenInAnyDirection() &&
+                               car.turnsRightNext()) {
+                        DebugOutput.print("   "
+                                          + car
+                                          + " wants to enter intersection"
+                                          + " at red traffic light"
+                                          + " (turning right)");
+                        this.putCarInIntersection(segment, car);
+                        
                     } else {
-                        DebugOutput.print("   but can not move because of"
+                        DebugOutput.print("   "
+                                          + car
+                                          + " can not move because of"
                                           + " red traffic light");
                     }
                 }
@@ -248,14 +247,26 @@ public class Intersection extends Object {
     ///////////////////////////////////////////////////////////////////////
     /////// Put car into intersection
     ///////////////////////////////////////////////////////////////////////
-    private void putCarInIntersection (Segment fromSegment, Segment toSegment,
-                                      Car car) {
+    private void putCarInIntersection (Segment fromSegment, Car car) {
+        
+        int nextDirection = car.getNextDirection();
+        Segment toSegment = new Segment();
+        
+        if (nextDirection == Direction.SOUTHWARD)
+            toSegment = this.outSouthSegment;
+        else if (nextDirection == Direction.EASTWARD)
+            toSegment = this.outEastSegment;
+        else if (nextDirection == Direction.NORTHWARD)
+            toSegment = this.outNorthSegment;
+        else if (nextDirection == Direction.WESTWARD)
+            toSegment = this.outWestSegment;
+
         if (toSegment.hasSpace()) {
             fromSegment.removeFirstCar();
             this.cars.add(car);
             this.outSegmentsForCars.add(toSegment);
             car.setTimeToTraverse(this.minTimeToChangeSegment);
-            
+
             DebugOutput.print("   "
                               + car
                               + " is removed and placed into intersection");

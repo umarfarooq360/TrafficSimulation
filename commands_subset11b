@@ -1,0 +1,49 @@
+#!/bin/csh
+
+echo "<UNIX-PROMPT> pwd"
+pwd
+echo "<UNIX-PROMPT> ls -tl *java"
+ls -tl *java
+echo "<UNIX-PROMPT> cat Test_TrafficModel.java"
+cat Test_TrafficModel.java
+echo "<UNIX-PROMPT> cat TrafficModel.java"
+cat TrafficModel.java
+echo "<UNIX-PROMPT> cat Intersection.java"
+cat Intersection.java
+echo "<UNIX-PROMPT> cat Segment.java"
+cat Segment.java
+echo "<UNIX-PROMPT> cat Car.java"
+cat Car.java
+echo "<UNIX-PROMPT> cat TrafficLight.java"
+cat TrafficLight.java
+echo "<UNIX-PROMPT> cat Direction.java"
+cat Direction.java
+echo "<UNIX-PROMPT> cat Turn.java"
+cat Turn.java
+echo "<UNIX-PROMPT> cat LightSignal.java"
+cat LightSignal.java
+echo "<UNIX-PROMPT> cat data1_for_subset11b"
+cat data1_for_subset11b
+echo "<UNIX-PROMPT> rm *class"
+rm *class
+echo "<UNIX-PROMPT> javac Test_TrafficModel.java"
+javac Test_TrafficModel.java
+echo "<UNIX-PROMPT> javac TrafficModel.java"
+javac TrafficModel.java
+echo "<UNIX-PROMPT> javac Intersection.java"
+javac Intersection.java
+echo "<UNIX-PROMPT> javac Segment.java"
+javac Segment.java
+echo "<UNIX-PROMPT> javac Car.java"
+javac Car.java
+echo "<UNIX-PROMPT> javac TrafficLight.java"
+javac TrafficLight.java
+echo "<UNIX-PROMPT> javac Direction.java"
+javac Direction.java
+echo "<UNIX-PROMPT> javac Turn.java"
+javac Turn.java
+echo "<UNIX-PROMPT> javac LightSignal.java"
+javac LightSignal.java
+echo "<UNIX-PROMPT> java Test_TrafficModel < data1_for_subset11b"
+java Test_TrafficModel < data1_for_subset11b
+

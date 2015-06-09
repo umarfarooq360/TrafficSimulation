@@ -64,7 +64,7 @@ public class TrafficLight extends Object {
     }
     
     ///////////////////////////////////////////////////////////////////////
-    /////// Request to switch traffic light
+    /////// Is traffic light green in given direction?
     ///////////////////////////////////////////////////////////////////////
     public boolean isGreenInDirection(int direction) {
         if (direction == Direction.SOUTHWARD &&
@@ -84,6 +84,14 @@ public class TrafficLight extends Object {
             return true;
         }
         return false;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Is traffic light green in any direction?
+    ///////////////////////////////////////////////////////////////////////
+    public boolean isGreenInAnyDirection() {
+        return (this.status == LightSignal.GREEN_NS ||
+                this.status == LightSignal.GREEN_EW);
     }
 
     ///////////////////////////////////////////////////////////////////////
