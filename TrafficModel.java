@@ -14,6 +14,7 @@ public class TrafficModel extends Object {
 
     private Intersection intersections[][];
     private ArrayList<Segment> segments;
+    private ArrayList<Car> cars;
     private int numIntersectionsInOneDirection;
 
     ///////////////////////////////////////////////////////////////////////
@@ -21,6 +22,7 @@ public class TrafficModel extends Object {
     ///////////////////////////////////////////////////////////////////////
     public TrafficModel () {
         this.numIntersectionsInOneDirection = 0;
+        this.cars = new ArrayList<Car>();
     }
     
     ///////////////////////////////////////////////////////////////////////
@@ -28,9 +30,10 @@ public class TrafficModel extends Object {
     ///////////////////////////////////////////////////////////////////////
     public TrafficModel (int numIntersectionsInOneDirection) {
         this.numIntersectionsInOneDirection = numIntersectionsInOneDirection;
-        this.segments = new ArrayList<Segment>();
         this.intersections = new Intersection[numIntersectionsInOneDirection]
                                             [numIntersectionsInOneDirection];
+        this.segments = new ArrayList<Segment>();
+        this.cars = new ArrayList<Car>();
     }
 
     ///////////////////////////////////////////////////////////////////////
@@ -41,7 +44,9 @@ public class TrafficModel extends Object {
         this.createSegments();
         DebugOutput.print("Create intersections");
         this.createIntersections();
-
+        DebugOutput.print("Create cars");
+        this.createCars();
+        
         for (int row=0; row < numIntersectionsInOneDirection; row++) {
             for (int col=0; col < numIntersectionsInOneDirection; col++) {
                 this.intersections[row][col].doUnitOfWork();
@@ -125,5 +130,16 @@ public class TrafficModel extends Object {
             }
             
         }
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+    /////// Create cars and put each in a northward segment
+    ///////////////////////////////////////////////////////////////////////
+    private void createCars() {
+        for (int i=0; i < numIntersectionsInOneDirection; i++) {
+            this.intersections[i][i].getInNorthSegment()
+            .addCar(new Car(i+1, false));
+        }
+
     }
 }

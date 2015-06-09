@@ -14,12 +14,13 @@ public class Segment extends Object {
     private int row;
     private int col;
     private int direction;
+    private LinkedList<Car> queue;
 
     ///////////////////////////////////////////////////////////////////////
     /////// Constructor
     ///////////////////////////////////////////////////////////////////////
     public Segment () {
-        
+        this.queue = new LinkedList<Car>();
     }
     
     ///////////////////////////////////////////////////////////////////////
@@ -30,6 +31,23 @@ public class Segment extends Object {
         this.row = row;
         this.col = col;
         this.direction = direction;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Add car to segment queue
+    ///////////////////////////////////////////////////////////////////////
+    public void addCar (Car car) {
+        car.setCol(this.col);
+        car.setRow(this.row);
+        car.setDirectionCarIsHeaded(this.direction);
+        this.queue.add(car);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get front most car in segment queue
+    ///////////////////////////////////////////////////////////////////////
+    public Car getFirstCar () {
+        return (Car)this.queue.peek();
     }
     
     ///////////////////////////////////////////////////////////////////////
@@ -44,6 +62,18 @@ public class Segment extends Object {
                 + this.row
                 + "/"
                 + Direction.toString(this.direction);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// String representation of segment status
+    ///////////////////////////////////////////////////////////////////////
+    public String toStringStatus() {
+        Car firstCar = this.getFirstCar();
+        if (firstCar == null) {
+            return "Segment is empty.";
+        } else {
+            return "Holds " + firstCar.toString();
+        }
     }
     
     ///////////////////////////////////////////////////////////////////////

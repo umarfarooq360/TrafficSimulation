@@ -50,20 +50,84 @@ public class Intersection extends Object {
             this.outWestSegment = segments[7];
         }
     }
+ 
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get incoming southward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getInSouthSegment() {
+        return this.inSouthSegment;
+    }
+ 
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get incoming eastward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getInEastSegment() {
+        return this.inEastSegment;
+    }
+   
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get incoming northward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getInNorthSegment() {
+        return this.inNorthSegment;
+    }
+   
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get incoming westward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getInWestSegment() {
+        return this.inWestSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get outgoing southward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getOutSouthSegment() {
+        return this.outSouthSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get outgoing eastward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getOutEastSegment() {
+        return this.outEastSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get outgoing northward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getOutNorthSegment() {
+        return this.outNorthSegment;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////
+    /////// Get outgoing westward segment
+    ///////////////////////////////////////////////////////////////////////
+    public Segment getOutWestSegment() {
+        return this.outWestSegment;
+    }
     
     ///////////////////////////////////////////////////////////////////////
     /////// Do unit of work
     ///////////////////////////////////////////////////////////////////////
     public void doUnitOfWork () {
         DebugOutput.print("" + this);
-        DebugOutput.print("Incoming Southward: "  + this.inSouthSegment);
-        DebugOutput.print("Incoming Eastward: "   + this.inEastSegment);
-        DebugOutput.print("Incoming Northward: "  + this.inNorthSegment);
-        DebugOutput.print("Incoming Westward: "   + this.inWestSegment);
-        DebugOutput.print("Outgoing Southward: "  + this.outSouthSegment);
-        DebugOutput.print("Outgoing Eastward: "   + this.outEastSegment);
-        DebugOutput.print("Outgoing Northward: "  + this.outNorthSegment);
-        DebugOutput.print("Outgoing Westward: "   + this.outWestSegment);
+        DebugOutput.print("Incoming Southward: "
+                          + this.inSouthSegment.toStringStatus());
+        DebugOutput.print("Incoming Eastward: "
+                          + this.inEastSegment.toStringStatus());
+        DebugOutput.print("Incoming Northward: "
+                          + this.inNorthSegment.toStringStatus());
+        DebugOutput.print("Incoming Westward: "
+                          + this.inWestSegment.toStringStatus());
+        DebugOutput.print("Outgoing Southward: "
+                          + this.outSouthSegment.toStringStatus());
+        DebugOutput.print("Outgoing Eastward: "
+                          + this.outEastSegment.toStringStatus());
+        DebugOutput.print("Outgoing Northward: "
+                          + this.outNorthSegment.toStringStatus());
+        DebugOutput.print("Outgoing Westward: "
+                          + this.outWestSegment.toStringStatus());
     }
     
     ///////////////////////////////////////////////////////////////////////
